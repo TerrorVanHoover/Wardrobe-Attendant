@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>Wardrobe Attendant</name>
+	<author>TerrorVanHoover</author>
+	<packageId>TerrorVanHoover.wardrobeattendant</packageId>
+	<supportedVersions>
+		<li>1.6</li>
+	</supportedVersions>
+	<description>
+		Assign colonists to continuously maintain the required apparel of colonists, slaves, prisoners and colony animals.
+
+		Features:
+		- Create multiple apparel rules per pawn.
+		- Full outfit mode: automatically find and equip the best permitted apparel.
+		- Exact item mode: search only for the selected apparel def; other apparel sharing its layers does not interfere with selection.
+		- Filter apparel by quality range and durability threshold.
+		- Optionally lock suitable apparel after it is equipped by a Wardrobe Attendant job.
+		- Optionally replace apparel after it falls below its durability threshold and a better permitted replacement is available.
+		- Optionally remove apparel after it falls below its durability threshold when no compatible replacement is available; a worker removes all eligible worn-out items in one visit, only after completing the removal work. Interrupting the work does not remove apparel.
+		- Exact apparel rules can replace their required apparel with a better item of the same apparel def after it falls below the durability threshold. The currently worn same-def item is treated as the replacement target, not as a conflicting item.
+		- Exact apparel rules can remove their required apparel after it falls below the durability threshold when no permitted replacement is available.
+		- Exact apparel rules protect their required apparel from being removed or replaced by full outfit rules.
+		- Full outfit rules do not remove or replace apparel required by exact item rules.
+		- If the only apparent replacement for worn apparel is protected by an exact item rule, the worn apparel can still be removed according to its own removal settings.
+		- Workers respect outfit policies, reservations, reachability, burning items, body compatibility and apparel restrictions.
+		- Full outfit jobs evaluate candidates against the currently worn outfit before issuing one dressing job at a time.
+		- Replacement checks and full outfit job selection share the same conflict checks; unrelated clothing does not count as a replacement for a worn-out item.
+		- Exact apparel availability checks use the selected rule's quality and condition filters, the pawn's apparel policy, wearability, reservations and reachability.
+		- Full outfit rules leave apparel defs assigned to enabled exact item rules to those exact item rules.
+		- Wardrobe configuration is available for colony prisoners even when they belong to another faction.
+		- Empty or invalid exact item rules are disabled on load and remain exact item rules; they never become full outfit rules automatically.
+		- Apparel is selected using quality, condition and actual armor ratings.
+		- Configure protection priorities for Full outfit and Exact item rules: cold protection, heat protection, armor, toxicity protection and vacuum protection.
+		- When protection priorities are enabled, apparel is selected using the selected protection weights; quality, condition and market value are not used.
+		- When no protection priority is enabled, apparel is selected using quality, condition and market value.
+		- Optionally allow corpse-worn apparel, optionally restrict a rule to corpse-worn apparel only, while always respecting the pawn's vanilla apparel policy. Corpse-worn apparel settings apply independently to each apparel rule.
+		- Duplicate dressing and removal jobs are avoided through job, reservation and cached active-job checks.
+		- Compatible with animal apparel and modded races through RimWorld's apparel wearability checks.
+		- The Wardrobe button highlights green when a pawn has at least one enabled apparel slot.
+		- Works with existing saves: safely enables, disables and normalizes saved wardrobe assignments.
+		- Optimized job scanning with cached wardrobe assignments, cached active-job checks, per-tick map apparel caching, reusable protected and available exact apparel caches, cached apparel scoring, reusable UI listings and reduced temporary allocations. Periodic pending-job cleanup runs independently of job scanning. Apparel removal uses RimWorld's built-in toil duration counter, with saved progress and compatibility with the previous removal progress format.
+		- Optional compatibility setting: prevent vanilla self-equipping from selecting apparel that an enabled Wardrobe Attendant rule is set to remove.
+		- Pending wardrobe jobs are owned by their issuing job and are cleared after successful completion; cancellation and failure retain their short cooldown.
+		- Apparel removal is revalidated immediately before the worker changes the target's equipment. In batch removal jobs, every eligible apparel item is validated separately, so items with an available replacement remain equipped.
+		- Apparel equipping is revalidated immediately before the target actually wears the selected item. The selected item is validated directly, including apparel already carried by the worker, so an item that no longer matches its rule, policy or protected apparel restrictions is not equipped.
+		- Wardrobe jobs are revalidated when the worker reaches the target and periodically during work, preventing unnecessary waiting or work when apparel or rules have become invalid.
+		- Apparel wearing is revalidated after the worker reaches the recipient; the final wear check verifies item and recipient availability without reselecting candidates.
+		- Wear jobs are revalidated immediately before the worker begins unequipping conflicting apparel, then again during final apparel wearing validation. This avoids a global Harmony patch on JobDriver.DriverTick and reduces compatibility risk with other mods.
+		- Apparel that fails an enabled rule's quality or condition filter is treated as a removal candidate even when its durability remains above the configured threshold.
+		- A valid replacement cancels removal of apparel that fails the rule's quality filter, even when its durability remains above the configured threshold.
+		- Optional setting: skip drafted colonists when selecting new Wardrobe Attendant targets. Already active Wardrobe Attendant jobs targeting a drafted colonist are interrupted before equipment is changed.
+		- A valid replacement cancels removal of apparel that fails the rule's quality filter, even when its durability remains above the configured threshold.
+		- While removing apparel, the target pawn is held in place for the duration of the removal work, without overriding a player-forced order.
+		- Localized UI through RimWorld translation files.
+		- Optional detailed diagnostics for wardrobe job selection, wear validation, full outfit candidate checks and job completion.
+
+		Wardrobe assignments are maintained through the separate Wardrober work type. A worker must also have Hauling work available. Enable Wardrober in the Work tab.
+		- Wardrobe maintenance is performed through a separate Wardrober work type.
+		- Wardrober can be enabled or disabled separately from Hauling.
+		- The Wardrober checkbox is available only to colony colonists and colony slaves whose Hauling work is available.
+		- Wardrober work does not require Hauling to remain enabled after Wardrober has been enabled.
+		- Prisoners and animals cannot perform Wardrober work, but can still be configured as wardrobe targets.
+		- Compatible with colony children, enslaved children, imprisoned children and young colony animals as wardrobe targets.
+		- Only one active Any apparel rule is allowed per pawn; enabling another Any apparel rule disables the previous one.
+		- Only one active Exact apparel rule for the same apparel def is allowed per pawn; enabling another identical Exact apparel rule disables the previous one.
+		- The first apparel slot is created as an active Full outfit rule.
+		- Second and subsequent apparel slots are created as active Exact item rules without a selected apparel def.
+		- Only one active Full outfit rule is allowed per pawn; attempting to activate another Full outfit rule deactivates it and shows a warning.
+		- Only one active Exact item rule for the same apparel def is allowed per pawn; attempting to activate another identical Exact item rule deactivates it and shows a warning.
+	</description>
+</ModMetaData>
+
+

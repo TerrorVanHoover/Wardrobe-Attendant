@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<JobDef>
+		<defName>WardrobeAttendant_RemoveApparel</defName>
+		<label>remove wardrobe apparel</label>
+		<description>Remove a single piece of apparel from a pawn for Wardrobe Attendant.</description>
+		<driverClass>WardrobeAttendant.JobDriver_WardrobeRemoveApparel</driverClass>
+		<reportString>removing TargetB_label</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+
+</Defs>

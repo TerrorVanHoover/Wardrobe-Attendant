@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<WardrobeAttendant_Wardrober.label>Гардеробщик</WardrobeAttendant_Wardrober.label>
+	<WardrobeAttendant_Wardrober.labelShort>Гардеробщик</WardrobeAttendant_Wardrober.labelShort>
+	<WardrobeAttendant_Wardrober.pawnLabel>Гардеробщик</WardrobeAttendant_Wardrober.pawnLabel>
+	<WardrobeAttendant_Wardrober.gerundLabel>обслуживает гардероб</WardrobeAttendant_Wardrober.gerundLabel>
+	<WardrobeAttendant_Wardrober.verb>обслуживать гардероб</WardrobeAttendant_Wardrober.verb>
+	<WardrobeAttendant_Wardrober.description>Поддерживать гардеробы.</WardrobeAttendant_Wardrober.description>
+
+</LanguageData>

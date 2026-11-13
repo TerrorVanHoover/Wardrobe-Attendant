@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<WardrobeAttendant.Settings.DebugLogging>Enable debug logging</WardrobeAttendant.Settings.DebugLogging>
+	<WardrobeAttendant.Settings.DebugLoggingDesc>Write detailed Wardrobe Attendant diagnostics to the RimWorld log.</WardrobeAttendant.Settings.DebugLoggingDesc>
+
+	<WardrobeAttendant.GearButton>Wardrobe</WardrobeAttendant.GearButton>
+	<WardrobeAttendant.GearButtonDesc>Open wardrobe assignments for {0}.</WardrobeAttendant.GearButtonDesc>
+
+	<WardrobeAttendant.Window.Title>Wardrobe assignments: {0}</WardrobeAttendant.Window.Title>
+	<WardrobeAttendant.Window.ComponentNotInitialized>Wardrobe component is not initialized.</WardrobeAttendant.Window.ComponentNotInitialized>
+	<WardrobeAttendant.Window.AddSlot>Add apparel slot</WardrobeAttendant.Window.AddSlot>
+	<WardrobeAttendant.Window.Close>Close</WardrobeAttendant.Window.Close>
+
+	<WardrobeAttendant.Slot.EditTitle>Edit slot: {0}</WardrobeAttendant.Slot.EditTitle>
+	<WardrobeAttendant.Slot.LockApparel>Lock apparel after equipping</WardrobeAttendant.Slot.LockApparel>
+	<WardrobeAttendant.Slot.LockedDesc>Wardrobe will lock this apparel after equipping it. Only the player can unlock and remove it.</WardrobeAttendant.Slot.LockedDesc>
+	<WardrobeAttendant.Slot.UnlockedDesc>Apparel will remain unlocked.</WardrobeAttendant.Slot.UnlockedDesc>
+	<WardrobeAttendant.Slot.UseDurability>Replace apparel below durability threshold</WardrobeAttendant.Slot.UseDurability>
+	<WardrobeAttendant.Slot.MinimumCondition>Minimum condition: {0}%</WardrobeAttendant.Slot.MinimumCondition>
+	<WardrobeAttendant.Slot.QualityRange>Quality range</WardrobeAttendant.Slot.QualityRange>
+	<WardrobeAttendant.Slot.ModeFullOutfit>Full outfit</WardrobeAttendant.Slot.ModeFullOutfit>
+	<WardrobeAttendant.Slot.ModeExactItem>Exact item</WardrobeAttendant.Slot.ModeExactItem>
+	<WardrobeAttendant.Slot.ChooseExact>Choose exact apparel</WardrobeAttendant.Slot.ChooseExact>
+	<WardrobeAttendant.Slot.Selected>Selected: {0}</WardrobeAttendant.Slot.Selected>
+	<WardrobeAttendant.Slot.None>None</WardrobeAttendant.Slot.None>
+	<WardrobeAttendant.Slot.Close>Close</WardrobeAttendant.Slot.Close>
+
+	<WardrobeAttendant.Summary.FullOutfit>Full outfit</WardrobeAttendant.Summary.FullOutfit>
+	<WardrobeAttendant.Summary.Any>Any</WardrobeAttendant.Summary.Any>
+	<WardrobeAttendant.Summary.Quality>Quality: {0}</WardrobeAttendant.Summary.Quality>
+	<WardrobeAttendant.Summary.Condition>Condition: {0}</WardrobeAttendant.Summary.Condition>
+	<WardrobeAttendant.Summary.Locked>Locked</WardrobeAttendant.Summary.Locked>
+	<WardrobeAttendant.Summary.Edit>Edit</WardrobeAttendant.Summary.Edit>
+	<WardrobeAttendant.Summary.Remove>Remove</WardrobeAttendant.Summary.Remove>
+
+	<WardrobeAttendant.DefaultSlotName>Apparel slot {0}</WardrobeAttendant.DefaultSlotName>
+
+	<WardrobeAttendant.Slot.RemoveAtThreshold>Remove apparel at durability threshold</WardrobeAttendant.Slot.RemoveAtThreshold>
+	<WardrobeAttendant.Slot.RemoveAtThresholdDesc>If no compatible replacement is available, a worker will remove apparel that falls below the durability threshold.</WardrobeAttendant.Slot.RemoveAtThresholdDesc>
+	<WardrobeAttendant.Summary.RemoveAtThreshold>Remove at threshold</WardrobeAttendant.Summary.RemoveAtThreshold>
+
+	<WardrobeAttendant.Settings.PreventVanillaSelfEquipping>Prevent vanilla self-equipping of apparel that Wardrobe Attendant is set to remove</WardrobeAttendant.Settings.PreventVanillaSelfEquipping>
+	<WardrobeAttendant.Settings.PreventVanillaSelfEquippingDesc>When enabled, vanilla self-equipping will not select an apparel item that an enabled Wardrobe Attendant rule is set to remove after its durability threshold. Vanilla apparel selection remains enabled for other items.</WardrobeAttendant.Settings.PreventVanillaSelfEquippingDesc>
+
+	<WardrobeAttendant.Settings.SkipDraftedTargets>Do not service drafted colonists</WardrobeAttendant.Settings.SkipDraftedTargets>
+	<WardrobeAttendant.Settings.SkipDraftedTargetsDesc>When enabled, drafted colonists will not be selected as targets for new Wardrobe Attendant dressing or apparel removal jobs. Already active Wardrobe Attendant jobs targeting a drafted colonist are interrupted before equipment is changed.</WardrobeAttendant.Settings.SkipDraftedTargetsDesc>
+
+	<WardrobeAttendant.Slot.DuplicateFullOutfit>Only one Full outfit slot can be active. This slot has been deactivated.</WardrobeAttendant.Slot.DuplicateFullOutfit>
+	<WardrobeAttendant.Slot.DuplicateExactItem>Only one Exact item slot for this apparel can be active. This slot has been deactivated.</WardrobeAttendant.Slot.DuplicateExactItem>
+	<WardrobeAttendant.WorkType.Description>Maintain wardrobes.</WardrobeAttendant.WorkType.Description>
+
+	<WardrobeAttendant.Slot.UseProtectionPriorities>Configure protection priority</WardrobeAttendant.Slot.UseProtectionPriorities>
+	<WardrobeAttendant.Slot.PrioritizeCold>Cold protection</WardrobeAttendant.Slot.PrioritizeCold>
+	<WardrobeAttendant.Slot.PrioritizeHeat>Heat protection</WardrobeAttendant.Slot.PrioritizeHeat>
+	<WardrobeAttendant.Slot.PrioritizeArmor>Armor</WardrobeAttendant.Slot.PrioritizeArmor>
+	<WardrobeAttendant.Slot.PrioritizeToxicity>Toxicity protection</WardrobeAttendant.Slot.PrioritizeToxicity>
+	<WardrobeAttendant.Slot.PrioritizeVacuum>Vacuum protection</WardrobeAttendant.Slot.PrioritizeVacuum>
+
+	<WardrobeAttendant.Slot.AllowCorpseApparel>Allow corpse-worn apparel</WardrobeAttendant.Slot.AllowCorpseApparel>
+	<WardrobeAttendant.Slot.OnlyCorpseApparel>Use only corpse-worn apparel</WardrobeAttendant.Slot.OnlyCorpseApparel>
+
+	<WardrobeAttendant.Summary.Protection>Protection: {0}</WardrobeAttendant.Summary.Protection>
+	<WardrobeAttendant.Summary.ProtectionNone>Default scoring</WardrobeAttendant.Summary.ProtectionNone>
+	<WardrobeAttendant.Summary.CorpseApparelForbidden>No corpse-worn apparel</WardrobeAttendant.Summary.CorpseApparelForbidden>
+	<WardrobeAttendant.Summary.CorpseApparelAllowed>Corpse-worn apparel allowed</WardrobeAttendant.Summary.CorpseApparelAllowed>
+	<WardrobeAttendant.Summary.OnlyCorpseApparel>Corpse-worn apparel only</WardrobeAttendant.Summary.OnlyCorpseApparel>
+
+</LanguageData>

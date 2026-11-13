@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<WardrobeAttendant.label>обслуживать гардеробы</WardrobeAttendant.label>
+	<WardrobeAttendant.verb>одевать</WardrobeAttendant.verb>
+	<WardrobeAttendant.gerund>одевает</WardrobeAttendant.gerund>
+
+</LanguageData>

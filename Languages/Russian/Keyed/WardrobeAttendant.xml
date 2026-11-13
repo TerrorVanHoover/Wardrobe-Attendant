@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<WardrobeAttendant.Settings.DebugLogging>Включить отладочные логи</WardrobeAttendant.Settings.DebugLogging>
+	<WardrobeAttendant.Settings.DebugLoggingDesc>Записывать подробную диагностику Wardrobe Attendant в лог RimWorld.</WardrobeAttendant.Settings.DebugLoggingDesc>
+
+	<WardrobeAttendant.GearButton>Гардероб</WardrobeAttendant.GearButton>
+	<WardrobeAttendant.GearButtonDesc>Открыть назначения гардероба для {0}.</WardrobeAttendant.GearButtonDesc>
+
+	<WardrobeAttendant.Window.Title>Назначения гардероба: {0}</WardrobeAttendant.Window.Title>
+	<WardrobeAttendant.Window.ComponentNotInitialized>Компонент гардероба не инициализирован.</WardrobeAttendant.Window.ComponentNotInitialized>
+	<WardrobeAttendant.Window.AddSlot>Добавить слот одежды</WardrobeAttendant.Window.AddSlot>
+	<WardrobeAttendant.Window.Close>Закрыть</WardrobeAttendant.Window.Close>
+
+	<WardrobeAttendant.Slot.EditTitle>Изменить слот: {0}</WardrobeAttendant.Slot.EditTitle>
+	<WardrobeAttendant.Slot.LockApparel>Заблокировать одежду после надевания</WardrobeAttendant.Slot.LockApparel>
+	<WardrobeAttendant.Slot.LockedDesc>Гардероб заблокирует эту одежду после надевания. Разблокировать и снять её сможет только игрок.</WardrobeAttendant.Slot.LockedDesc>
+	<WardrobeAttendant.Slot.UnlockedDesc>Одежда останется незаблокированной.</WardrobeAttendant.Slot.UnlockedDesc>
+	<WardrobeAttendant.Slot.UseDurability>Заменять одежду ниже порога прочности</WardrobeAttendant.Slot.UseDurability>
+	<WardrobeAttendant.Slot.MinimumCondition>Минимальная прочность: {0}%</WardrobeAttendant.Slot.MinimumCondition>
+	<WardrobeAttendant.Slot.QualityRange>Диапазон качества</WardrobeAttendant.Slot.QualityRange>
+	<WardrobeAttendant.Slot.ModeFullOutfit>Полный набор</WardrobeAttendant.Slot.ModeFullOutfit>
+	<WardrobeAttendant.Slot.ModeExactItem>Конкретный предмет</WardrobeAttendant.Slot.ModeExactItem>
+	<WardrobeAttendant.Slot.ChooseExact>Выбрать конкретную одежду</WardrobeAttendant.Slot.ChooseExact>
+	<WardrobeAttendant.Slot.Selected>Выбрано: {0}</WardrobeAttendant.Slot.Selected>
+	<WardrobeAttendant.Slot.None>Нет</WardrobeAttendant.Slot.None>
+	<WardrobeAttendant.Slot.Close>Закрыть</WardrobeAttendant.Slot.Close>
+
+	<WardrobeAttendant.Summary.FullOutfit>Полный набор</WardrobeAttendant.Summary.FullOutfit>
+	<WardrobeAttendant.Summary.Any>Любое</WardrobeAttendant.Summary.Any>
+	<WardrobeAttendant.Summary.Quality>Качество: {0}</WardrobeAttendant.Summary.Quality>
+	<WardrobeAttendant.Summary.Condition>Прочность: {0}</WardrobeAttendant.Summary.Condition>
+	<WardrobeAttendant.Summary.Locked>Заблокировано</WardrobeAttendant.Summary.Locked>
+	<WardrobeAttendant.Summary.Edit>Изменить</WardrobeAttendant.Summary.Edit>
+	<WardrobeAttendant.Summary.Remove>Удалить</WardrobeAttendant.Summary.Remove>
+
+	<WardrobeAttendant.DefaultSlotName>Слот одежды {0}</WardrobeAttendant.DefaultSlotName>
+
+	<WardrobeAttendant.Slot.RemoveAtThreshold>Снимать одежду по достижении порога прочности</WardrobeAttendant.Slot.RemoveAtThreshold>
+	<WardrobeAttendant.Slot.RemoveAtThresholdDesc>Если совместимая замена недоступна, работник снимет одежду, опустившуюся ниже порога прочности.</WardrobeAttendant.Slot.RemoveAtThresholdDesc>
+	<WardrobeAttendant.Summary.RemoveAtThreshold>Снимать по порогу</WardrobeAttendant.Summary.RemoveAtThreshold>
+
+	<WardrobeAttendant.Settings.PreventVanillaSelfEquipping>Запретить ванильное самостоятельное надевание одежды, которую Wardrobe Attendant настроен снимать</WardrobeAttendant.Settings.PreventVanillaSelfEquipping>
+	<WardrobeAttendant.Settings.PreventVanillaSelfEquippingDesc>Если включено, ванильный самостоятельный подбор не выберет предмет, который включённое правило Wardrobe Attendant настроено снимать после достижения порога прочности. Самостоятельное переодевание остаётся доступным для других предметов.</WardrobeAttendant.Settings.PreventVanillaSelfEquippingDesc>
+
+	<WardrobeAttendant.Settings.SkipDraftedTargets>Не обслуживать колонистов в боевом режиме</WardrobeAttendant.Settings.SkipDraftedTargets>
+	<WardrobeAttendant.Settings.SkipDraftedTargetsDesc>Если включено, колонисты в боевом режиме не будут выбираться как цели для новых заданий Wardrobe Attendant на переодевание или снятие одежды. Уже активные задания Wardrobe Attendant для колониста в боевом режиме прерываются до изменения экипировки.</WardrobeAttendant.Settings.SkipDraftedTargetsDesc>
+
+	<WardrobeAttendant.Slot.DuplicateFullOutfit>Активным может быть только один слот «Полный набор». Этот слот был деактивирован.</WardrobeAttendant.Slot.DuplicateFullOutfit>
+	<WardrobeAttendant.Slot.DuplicateExactItem>Активным может быть только один слот «Конкретный предмет» с этой одеждой. Этот слот был деактивирован.</WardrobeAttendant.Slot.DuplicateExactItem>
+	<WardrobeAttendant.WorkType.Description>Поддерживать гардеробы.</WardrobeAttendant.WorkType.Description>
+
+	<WardrobeAttendant.Slot.UseProtectionPriorities>Настроить приоритет защиты</WardrobeAttendant.Slot.UseProtectionPriorities>
+	<WardrobeAttendant.Slot.PrioritizeCold>Защита от холода</WardrobeAttendant.Slot.PrioritizeCold>
+	<WardrobeAttendant.Slot.PrioritizeHeat>Защита от тепла</WardrobeAttendant.Slot.PrioritizeHeat>
+	<WardrobeAttendant.Slot.PrioritizeArmor>Броня</WardrobeAttendant.Slot.PrioritizeArmor>
+	<WardrobeAttendant.Slot.PrioritizeToxicity>Защита от токсичности</WardrobeAttendant.Slot.PrioritizeToxicity>
+	<WardrobeAttendant.Slot.PrioritizeVacuum>Защита от вакуума</WardrobeAttendant.Slot.PrioritizeVacuum>
+
+	<WardrobeAttendant.Slot.AllowCorpseApparel>Разрешить использовать одежду с трупов</WardrobeAttendant.Slot.AllowCorpseApparel>
+	<WardrobeAttendant.Slot.OnlyCorpseApparel>Использовать только одежду с трупов</WardrobeAttendant.Slot.OnlyCorpseApparel>
+
+	<WardrobeAttendant.Summary.Protection>Защита: {0}</WardrobeAttendant.Summary.Protection>
+	<WardrobeAttendant.Summary.ProtectionNone>Обычный подбор</WardrobeAttendant.Summary.ProtectionNone>
+	<WardrobeAttendant.Summary.CorpseApparelForbidden>Без одежды с трупов</WardrobeAttendant.Summary.CorpseApparelForbidden>
+	<WardrobeAttendant.Summary.CorpseApparelAllowed>Одежда с трупов разрешена</WardrobeAttendant.Summary.CorpseApparelAllowed>
+	<WardrobeAttendant.Summary.OnlyCorpseApparel>Только одежда с трупов</WardrobeAttendant.Summary.OnlyCorpseApparel>
+
+</LanguageData>

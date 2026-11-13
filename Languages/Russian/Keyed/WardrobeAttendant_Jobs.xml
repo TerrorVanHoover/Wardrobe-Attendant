@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<WardrobeAttendant_RemoveApparel.label>снять одежду из гардероба</WardrobeAttendant_RemoveApparel.label>
+	<WardrobeAttendant_RemoveApparel.description>Снять у пешки один предмет одежды для Wardrobe Attendant.</WardrobeAttendant_RemoveApparel.description>
+	<WardrobeAttendant_RemoveApparel.reportString>снимает TargetB_label</WardrobeAttendant_RemoveApparel.reportString>
+
+</LanguageData>

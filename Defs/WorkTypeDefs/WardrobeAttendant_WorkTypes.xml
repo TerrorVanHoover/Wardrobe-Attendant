@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<WorkTypeDef>
+		<defName>WardrobeAttendant_Wardrober</defName>
+		<label>Wardrober</label>
+		<labelShort>Wardrober</labelShort>
+		<pawnLabel>Wardrober</pawnLabel>
+		<gerundLabel>wardrobing</gerundLabel>
+		<verb>wardrobe</verb>
+		<description>Maintain wardrobes.</description>
+		<naturalPriority>1101</naturalPriority>
+		<alwaysStartActive>true</alwaysStartActive>
+		<workTags>
+			<li>ManualDumb</li>
+		</workTags>
+	</WorkTypeDef>
+
+</Defs>

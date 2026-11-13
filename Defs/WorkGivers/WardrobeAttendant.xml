@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<WorkGiverDef>
+		<defName>WardrobeAttendant</defName>
+		<label>maintain wardrobes</label>
+		<giverClass>WardrobeAttendant.WorkGiver_WardrobeAttendant</giverClass>
+		<workType>WardrobeAttendant_Wardrober</workType>
+		<priorityInType>80</priorityInType>
+		<verb>dress</verb>
+		<gerund>dressing</gerund>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+	</WorkGiverDef>
+
+</Defs>

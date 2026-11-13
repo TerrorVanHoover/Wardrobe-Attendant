@@ -1,0 +1,13 @@
+# Visual Studio / build artifacts
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Rider
+.idea/
+
+# OS files
+Thumbs.db
+Desktop.ini
