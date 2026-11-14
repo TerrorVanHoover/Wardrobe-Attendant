@@ -99,6 +99,11 @@ namespace WardrobeAttendant
 
                 component.ClearLockPending(newApparel);
 
+                if (pawn.apparel?.WornApparel.Contains(newApparel) == true)
+                {
+                    WorkGiver_WardrobeAttendant.InvalidateExactCandidateCache();
+                }
+
                 if (pawn.outfits?.forcedHandler == null ||
                     !component.TryGetSlots(pawn, out var slots))
                 {

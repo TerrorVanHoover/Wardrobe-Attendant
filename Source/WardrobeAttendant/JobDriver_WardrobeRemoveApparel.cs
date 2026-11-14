@@ -304,6 +304,8 @@ namespace WardrobeAttendant
 
             target.apparel.Remove(apparel);
 
+            WorkGiver_WardrobeAttendant.InvalidateExactCandidateCache();
+
             if (!apparel.Destroyed && apparel.holdingOwner == null)
             {
                 GenPlace.TryPlaceThing(

@@ -8,6 +8,8 @@ namespace WardrobeAttendant
 {
     public class WorkGiver_WardrobeAttendant : WorkGiver_Scanner
     {
+        private const int JobResultCacheMaxAgeTicks = 300;
+
         private static readonly List<ApparelLayerDef> AllApparelLayers =
             new List<ApparelLayerDef>();
 
@@ -22,6 +24,9 @@ namespace WardrobeAttendant
 
         private static readonly List<ThingDef> AvailableExactDefsScratch =
             new List<ThingDef>();
+
+        private static readonly List<long> StaleJobResultKeysScratch =
+            new List<long>();
 
         private sealed class WardrobeJobScanCache
         {
@@ -42,8 +47,16 @@ namespace WardrobeAttendant
             public Job Job;
         }
 
-        private static readonly Dictionary<int, WardrobeJobResultCache> JobResultCache =
-            new Dictionary<int, WardrobeJobResultCache>();
+        private static readonly Dictionary<long, WardrobeJobResultCache> JobResultCache =
+            new Dictionary<long, WardrobeJobResultCache>();
+
+        // Exact candidate cache: one map scan per (worker, target, slot) per tick
+        // instead of repeated scans from job issuing, replacement checks and
+        // driver revalidation paths.
+        private static readonly Dictionary<(int WorkerId, int TargetId, WardrobeSlot Slot), Apparel> ExactCandidateCache =
+            new Dictionary<(int WorkerId, int TargetId, WardrobeSlot Slot), Apparel>();
+
+        private static int ExactCandidateCacheTick = -1;
 
         public override ThingRequest PotentialWorkThingRequest =>
             ThingRequest.ForGroup(ThingRequestGroup.Pawn);
@@ -100,7 +113,8 @@ namespace WardrobeAttendant
                 return null;
             }
 
-            int cacheKey = worker.thingIDNumber * 397 ^ thing.thingIDNumber;
+            long cacheKey =
+                ((long)worker.thingIDNumber << 32) | (uint)thing.thingIDNumber;
             int currentTick = Find.TickManager?.TicksGame ?? 0;
 
             if (!issueJob &&
@@ -137,6 +151,52 @@ namespace WardrobeAttendant
             }
 
             return job;
+        }
+
+        // Called from WardrobeGameComponent's periodic cleanup.
+        // Entries older than JobResultCacheMaxAgeTicks belong to pawns that are
+        // no longer scanned and would otherwise accumulate for the whole session.
+        public static void CleanupStaleJobResults(int now)
+        {
+            if (JobResultCache.Count == 0)
+            {
+                return;
+            }
+
+            StaleJobResultKeysScratch.Clear();
+
+            foreach (var pair in JobResultCache)
+            {
+                if (pair.Value == null ||
+                    now - pair.Value.Tick > JobResultCacheMaxAgeTicks)
+                {
+                    StaleJobResultKeysScratch.Add(pair.Key);
+                }
+            }
+
+            for (int i = 0; i < StaleJobResultKeysScratch.Count; i++)
+            {
+                JobResultCache.Remove(StaleJobResultKeysScratch[i]);
+            }
+        }
+
+        // Called from WardrobeGameComponent.Finalize so abandoned maps and
+        // finished games are not pinned by static caches.
+        public static void ClearStaticCaches()
+        {
+            ScanCaches.Clear();
+            ApparelCaches.Clear();
+            JobResultCache.Clear();
+            ExactCandidateCache.Clear();
+            ExactCandidateCacheTick = -1;
+            ApparelScoreCache.Clear();
+            ApparelScoreCacheTick = -1;
+        }
+
+        public static void InvalidateExactCandidateCache()
+        {
+            ExactCandidateCache.Clear();
+            ExactCandidateCacheTick = -1;
         }
 
         private static Job FindJobFor(Pawn worker, Thing thing, bool issueJob)
@@ -808,7 +868,7 @@ namespace WardrobeAttendant
 
             if (slot.mode == WardrobeSlotMode.ExactItem)
             {
-                Apparel exactCandidate = FindExactCandidate(
+                Apparel exactCandidate = GetCachedExactCandidate(
                     target,
                     slot,
                     worker,
@@ -875,13 +935,55 @@ namespace WardrobeAttendant
             ApparelPolicy policy,
             HashSet<ThingDef> protectedExactDefs)
         {
-            Apparel candidate = FindExactCandidate(
+            Apparel candidate = GetCachedExactCandidate(
                 target, slot, worker, mapApparel, wornApparel, policy,
                 protectedExactDefs);
 
             return candidate != null
                 ? JobMaker.MakeJob(JobDefOf.ForceTargetWear, target, candidate)
                 : null;
+        }
+
+        // Exact candidates are the hot path: the same (worker, target, slot)
+        // triple is rescanned by job issuing, replacement checks and both driver
+        // revalidation paths. The result is cached for the current tick with the
+        // same granularity as GetMapApparel, so behaviour is unchanged.
+        private static Apparel GetCachedExactCandidate(
+            Pawn target,
+            WardrobeSlot slot,
+            Pawn worker,
+            List<Thing> mapApparel,
+            List<Apparel> wornApparel,
+            ApparelPolicy policy,
+            HashSet<ThingDef> protectedExactDefs)
+        {
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+
+            if (ExactCandidateCacheTick != currentTick)
+            {
+                ExactCandidateCache.Clear();
+                ExactCandidateCacheTick = currentTick;
+            }
+
+            var key = (worker.thingIDNumber, target.thingIDNumber, slot);
+
+            if (ExactCandidateCache.TryGetValue(key, out Apparel cached))
+            {
+                return cached;
+            }
+
+            Apparel candidate = FindExactCandidate(
+                target,
+                slot,
+                worker,
+                mapApparel,
+                wornApparel,
+                policy,
+                protectedExactDefs);
+
+            ExactCandidateCache[key] = candidate;
+
+            return candidate;
         }
 
         private static Apparel FindExactCandidate(
@@ -1087,9 +1189,12 @@ namespace WardrobeAttendant
                 bool candidateIsBetter =
                     IsBetterThan(candidate, worn, slot);
 
+                // Boundary: "below threshold" means strictly below. A worn item
+                // at exactly the threshold is still acceptable (same semantics
+                // as NeedsExactReplacement and the replacement check).
                 bool wornIsAboveThreshold =
                     slot.useDurabilityThreshold &&
-                    GetCondition(worn) > slot.durabilityThreshold;
+                    GetCondition(worn) >= slot.durabilityThreshold;
 
                 if (!candidateIsBetter ||
                     wornIsAboveThreshold)
@@ -1237,6 +1342,10 @@ namespace WardrobeAttendant
             return true;
         }
 
+        // Availability of exact defs intentionally uses the cached full-map
+        // candidate scan (not a phased/stored-only scan): it feeds the
+        // full-outfit protection logic, which must keep seeing every
+        // reachable exact candidate.
         private static List<ThingDef> GetAvailableExactDefs(
             Pawn target,
             Pawn worker,
@@ -1248,6 +1357,14 @@ namespace WardrobeAttendant
             result.Clear();
 
             int count = slots.Count;
+
+            if (target?.apparel == null)
+            {
+                return result;
+            }
+
+            List<Apparel> wornApparel = target.apparel.WornApparel;
+            HashSet<ThingDef> protectedExactDefs = GetProtectedExactDefs(target);
 
             for (int i = 0; i < count; i++)
             {
@@ -1262,13 +1379,14 @@ namespace WardrobeAttendant
                     continue;
                 }
 
-                Apparel candidate = FindBestApparel(
+                Apparel candidate = GetCachedExactCandidate(
                     target,
                     slot,
                     worker,
                     mapApparel,
-                    slot.exactApparelDef.apparel.layers,
-                    policy);
+                    wornApparel,
+                    policy,
+                    protectedExactDefs);
 
                 if (candidate != null)
                 {

@@ -454,6 +454,22 @@ namespace WardrobeAttendant
             CleanupExpired(pendingLockApparelJobs, now);
 
             CleanupInvalidAssignments();
+
+            WorkGiver_WardrobeAttendant.CleanupStaleJobResults(now);
+        }
+
+        // Drop static caches that pin Map objects when the game session ends,
+        // so returning to the main menu does not keep the old game alive.
+        public override void StartedNewGame()
+        {
+            base.StartedNewGame();
+            WorkGiver_WardrobeAttendant.ClearStaticCaches();
+        }
+
+        public override void LoadedGame()
+        {
+            base.LoadedGame();
+            WorkGiver_WardrobeAttendant.ClearStaticCaches();
         }
 
         private static bool IsPending(
@@ -465,6 +481,8 @@ namespace WardrobeAttendant
                    pending.expiresAt > CurrentTick;
         }
 
+        // Note: for both supported job defs targetA is the pawn being dressed
+        // or undressed, so targetId/target store that pawn (not the worker).
         private static bool TryMarkPending(
             Dictionary<int, PendingWardrobeJob> pendingJobs,
             Thing thing,
@@ -478,10 +496,10 @@ namespace WardrobeAttendant
             var pending = new PendingWardrobeJob
             {
                 jobId = job.loadID,
-                workerId = job.GetTarget(TargetIndex.A).Thing?.thingIDNumber ?? -1,
+                targetId = job.GetTarget(TargetIndex.A).Thing?.thingIDNumber ?? -1,
                 expiresAt = CurrentTick + PendingJobDurationTicks,
                 job = job,
-                worker = job.GetTarget(TargetIndex.A).Thing as Pawn
+                target = job.GetTarget(TargetIndex.A).Thing as Pawn
             };
 
             pendingJobs[thing.thingIDNumber] = pending;
@@ -510,8 +528,8 @@ namespace WardrobeAttendant
         }
 
         private static void CleanupExpired(
-    Dictionary<int, PendingWardrobeJob> pendingJobs,
-    int now)
+            Dictionary<int, PendingWardrobeJob> pendingJobs,
+            int now)
         {
             if (pendingJobs.Count == 0)
             {
@@ -661,10 +679,10 @@ namespace WardrobeAttendant
         public sealed class PendingWardrobeJob
         {
             public int jobId;
-            public int workerId;
+            public int targetId;
             public int expiresAt;
             public Job job;
-            public Pawn worker;
+            public Pawn target;
         }
     }
 }
