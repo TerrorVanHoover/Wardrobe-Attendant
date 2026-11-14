@@ -243,8 +243,13 @@ namespace WardrobeAttendant
                 searchText = listing.TextEntry(searchText);
                 listing.Gap(4f);
 
-                Rect listRect = listing.GetRect(
+                // Clamp the list height: with a strongly resized window the
+                // expression below can go negative and break the scroll view.
+                float listHeight = Mathf.Max(
+                    60f,
                     inRect.height - listing.CurHeight - 50f);
+
+                Rect listRect = listing.GetRect(listHeight);
 
                 if (_cachedApparelTarget != target ||
                     !string.Equals(_cachedSearchText, searchText, StringComparison.Ordinal))
