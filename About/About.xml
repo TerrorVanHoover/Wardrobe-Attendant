@@ -14,6 +14,13 @@
 		- Full outfit mode: automatically find and equip the best permitted apparel.
 		- Exact item mode: search only for the selected apparel def; other apparel sharing its layers does not interfere with selection.
 		- Filter apparel by quality range and durability threshold.
+		- Per-slot option to allow or forbid a colonist from servicing their own wardrobe.
+		- Per-slot early replacement: a substantially better available item can replace current apparel before it reaches the durability threshold.
+		- Per-slot option to allow or forbid Wardrobe Attendant workers from removing locked apparel.
+		- Apparel scoring no longer uses market value. It now prioritizes quality, condition, Sharp armor and selected protection stats.
+		- Protection scoring always includes condition, uses normalized cold and heat insulation, toxicity resistance and vacuum resistance. Vacuum protection receives the strongest weight, followed by toxicity protection.
+		- Vanilla self-equipping is prevented from re-equipping apparel that Wardrobe Attendant recently displaced through early replacement.
+		- Vanilla self-equipping is prevented from selecting below-threshold apparel when a suitable replacement is available.
 		- Optionally lock suitable apparel after it is equipped by a Wardrobe Attendant job.
 		- Optionally replace apparel after it falls below its durability threshold and a better permitted replacement is available.
 		- Optionally remove apparel after it falls below its durability threshold when no compatible replacement is available; a worker removes all eligible worn-out items in one visit, only after completing the removal work. Interrupting the work does not remove apparel.

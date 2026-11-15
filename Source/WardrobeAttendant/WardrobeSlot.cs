@@ -16,17 +16,21 @@ namespace WardrobeAttendant
     {
         public string slotName = "New apparel slot";
         public bool enabled = true;
-        public bool lockApparel;
+        public bool lockApparel = true;
 
         public WardrobeSlotMode mode = WardrobeSlotMode.FullOutfit;
         public ThingDef exactApparelDef;
 
-        public bool useDurabilityThreshold;
-        public float durabilityThreshold = 0.5f;
+        public bool useDurabilityThreshold = true;
+        public float durabilityThreshold = 0.51f;
 
-        public bool removeAtDurabilityThreshold;
+        public bool removeAtDurabilityThreshold = true;
 
-        public bool useProtectionPriorities;
+        public bool allowEarlyReplacement = true;
+        public bool allowSelfService = true;
+        public bool allowWorkerRemoveLocked = true;
+
+        public bool useProtectionPriorities = true;
         public bool prioritizeCold;
         public bool prioritizeHeat;
         public bool prioritizeArmor = true;
@@ -45,20 +49,28 @@ namespace WardrobeAttendant
             Scribe_Values.Look(ref enabled, "enabled", true);
             Scribe_Values.Look(ref mode, "mode", WardrobeSlotMode.FullOutfit);
             Scribe_Defs.Look(ref exactApparelDef, "exactApparelDef");
-            Scribe_Values.Look(ref useDurabilityThreshold, "useDurabilityThreshold");
-            Scribe_Values.Look(ref durabilityThreshold, "durabilityThreshold");
-            Scribe_Values.Look(ref removeAtDurabilityThreshold, "removeAtDurabilityThreshold", false);
-            Scribe_Values.Look(ref useProtectionPriorities, "useProtectionPriorities", false);
+
+            Scribe_Values.Look(ref useDurabilityThreshold, "useDurabilityThreshold", true);
+            Scribe_Values.Look(ref durabilityThreshold, "durabilityThreshold", 0.51f);
+            Scribe_Values.Look(ref removeAtDurabilityThreshold, "removeAtDurabilityThreshold", true);
+
+            Scribe_Values.Look(ref allowEarlyReplacement, "allowEarlyReplacement", true);
+            Scribe_Values.Look(ref allowSelfService, "allowSelfService", true);
+            Scribe_Values.Look(ref allowWorkerRemoveLocked, "allowWorkerRemoveLocked", true);
+
+            Scribe_Values.Look(ref useProtectionPriorities, "useProtectionPriorities", true);
             Scribe_Values.Look(ref prioritizeCold, "prioritizeCold", false);
             Scribe_Values.Look(ref prioritizeHeat, "prioritizeHeat", false);
             Scribe_Values.Look(ref prioritizeArmor, "prioritizeArmor", true);
             Scribe_Values.Look(ref prioritizeToxicity, "prioritizeToxicity", false);
             Scribe_Values.Look(ref prioritizeVacuum, "prioritizeVacuum", false);
+
             Scribe_Values.Look(ref allowCorpseApparel, "allowCorpseApparel", false);
             Scribe_Values.Look(ref onlyCorpseApparel, "onlyCorpseApparel", false);
+
             Scribe_Values.Look(ref minQuality, "minQuality", QualityCategory.Awful);
             Scribe_Values.Look(ref maxQuality, "maxQuality", QualityCategory.Legendary);
-            Scribe_Values.Look(ref lockApparel, "lockApparel", false);
+            Scribe_Values.Look(ref lockApparel, "lockApparel", true);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit &&
                 mode == WardrobeSlotMode.ExactItem &&
@@ -116,12 +128,12 @@ namespace WardrobeAttendant
         }
 
         public bool HasProtectionPriorities =>
-    useProtectionPriorities &&
-    (prioritizeCold ||
-     prioritizeHeat ||
-     prioritizeArmor ||
-     prioritizeToxicity ||
-     prioritizeVacuum);
+            useProtectionPriorities &&
+            (prioritizeCold ||
+             prioritizeHeat ||
+             prioritizeArmor ||
+             prioritizeToxicity ||
+             prioritizeVacuum);
 
         public bool AllowsCorpseApparel(Apparel apparel)
         {
@@ -149,7 +161,7 @@ namespace WardrobeAttendant
 
         public string GetProtectionSummary()
         {
-            if (!useProtectionPriorities)
+            if (!HasProtectionPriorities)
             {
                 return "WardrobeAttendant.Summary.ProtectionNone".Translate();
             }
@@ -234,5 +246,3 @@ namespace WardrobeAttendant
         }
     }
 }
-
-

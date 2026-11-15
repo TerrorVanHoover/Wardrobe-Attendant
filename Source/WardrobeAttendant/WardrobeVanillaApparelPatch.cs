@@ -51,8 +51,8 @@ namespace WardrobeAttendant
     public static class WardrobeRemovalRules
     {
         public static bool ShouldPreventSelfEquipping(
-    Pawn pawn,
-    Apparel apparel)
+            Pawn pawn,
+            Apparel apparel)
         {
             if (pawn == null ||
                 apparel == null ||
@@ -62,6 +62,11 @@ namespace WardrobeAttendant
                 pawn.outfits.forcedHandler.IsForced(apparel))
             {
                 return false;
+            }
+
+            if (WardrobeDisplacedApparelTracker.IsRecentlyDisplaced(apparel))
+            {
+                return true;
             }
 
             WardrobeGameComponent component = WardrobeGameComponent.Get;
@@ -78,9 +83,7 @@ namespace WardrobeAttendant
             {
                 WardrobeSlot slot = slots[i];
 
-                if (slot == null ||
-                    !slot.enabled ||
-                    !slot.removeAtDurabilityThreshold)
+                if (slot == null || !slot.enabled)
                 {
                     continue;
                 }
@@ -92,10 +95,22 @@ namespace WardrobeAttendant
                     slot.useDurabilityThreshold &&
                     GetCondition(apparel) < slot.durabilityThreshold;
 
+                if (slot.removeAtDurabilityThreshold &&
+                    (failsQualityFilter || belowDurabilityThreshold))
+                {
+                    return true;
+                }
+
+                if (belowDurabilityThreshold &&
+                    HasVanillaReplacement(pawn, apparel, slot))
+                {
+                    return true;
+                }
+
                 if (slot.mode == WardrobeSlotMode.ExactItem)
                 {
                     if (apparel.def == slot.exactApparelDef &&
-                        (failsQualityFilter || belowDurabilityThreshold))
+                        failsQualityFilter)
                     {
                         return true;
                     }
@@ -103,10 +118,70 @@ namespace WardrobeAttendant
                     continue;
                 }
 
-                if (failsQualityFilter || belowDurabilityThreshold)
+                if (failsQualityFilter)
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private static bool HasVanillaReplacement(
+            Pawn pawn,
+            Apparel oldApparel,
+            WardrobeSlot slot)
+        {
+            Map map = pawn.Map;
+
+            if (map == null)
+            {
+                return false;
+            }
+
+            ApparelPolicy policy = pawn.outfits?.CurrentApparelPolicy;
+            List<Thing> mapApparel =
+                map.listerThings.ThingsInGroup(ThingRequestGroup.Apparel);
+
+            int count = mapApparel.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (mapApparel[i] is not Apparel candidate ||
+                    candidate == oldApparel ||
+                    candidate.Destroyed ||
+                    candidate.IsBurning() ||
+                    candidate.IsForbidden(pawn))
+                {
+                    continue;
+                }
+
+                if (slot.mode == WardrobeSlotMode.ExactItem &&
+                    candidate.def != slot.exactApparelDef)
+                {
+                    continue;
+                }
+
+                if (!slot.AllowsApparel(candidate) ||
+                    !slot.AllowsCorpseApparel(candidate))
+                {
+                    continue;
+                }
+
+                if (policy != null &&
+                    !policy.filter.Allows(candidate))
+                {
+                    continue;
+                }
+
+                if (!ApparelUtility.HasPartsToWear(pawn, candidate.def) ||
+                    candidate.def.apparel == null ||
+                    !candidate.def.apparel.PawnCanWear(pawn))
+                {
+                    continue;
+                }
+
+                return true;
             }
 
             return false;

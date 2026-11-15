@@ -139,6 +139,30 @@ namespace WardrobeAttendant
                         "WardrobeAttendant.Summary.RemoveAtThreshold".Translate();
                 }
 
+                if (slot.useDurabilityThreshold)
+                {
+                    summary += "   |   " +
+                        (slot.allowEarlyReplacement
+                            ? "WardrobeAttendant.Summary.EarlyReplacement".Translate()
+                            : "WardrobeAttendant.Summary.NoEarlyReplacement".Translate());
+                }
+
+                if (target.IsColonist || target.IsSlaveOfColony)
+                {
+                    summary += "   |   " +
+                        (slot.allowSelfService
+                            ? "WardrobeAttendant.Summary.SelfService".Translate()
+                            : "WardrobeAttendant.Summary.NoSelfService".Translate());
+                }
+
+                if (slot.lockApparel)
+                {
+                    summary += "   |   " +
+                        (slot.allowWorkerRemoveLocked
+                            ? "WardrobeAttendant.Summary.WorkerCanRemoveLocked".Translate()
+                            : "WardrobeAttendant.Summary.WorkerCannotRemoveLocked".Translate());
+                }
+
                 summary += "   |   " +
                     slot.GetProtectionSummary();
 

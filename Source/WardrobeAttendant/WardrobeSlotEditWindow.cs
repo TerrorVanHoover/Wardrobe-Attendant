@@ -40,7 +40,7 @@ namespace WardrobeAttendant
             resizeable = true;
         }
 
-        public override Vector2 InitialSize => new Vector2(640f, 720f);
+        public override Vector2 InitialSize => new Vector2(640f, 780f);
 
         public override void DoWindowContents(Rect inRect)
         {
@@ -52,6 +52,24 @@ namespace WardrobeAttendant
                 "WardrobeAttendant.Slot.EditTitle".Translate(slot.slotName));
 
             listing.Gap(10f);
+
+            bool canSelfService =
+                target != null &&
+                (target.IsColonist || target.IsSlaveOfColony);
+
+            if (canSelfService)
+            {
+                bool allowSelfService = slot.allowSelfService;
+
+                listing.CheckboxLabeled(
+                    "WardrobeAttendant.Slot.AllowSelfService".Translate(),
+                    ref allowSelfService,
+                    "WardrobeAttendant.Slot.AllowSelfServiceDesc".Translate());
+
+                slot.allowSelfService = allowSelfService;
+
+                listing.Gap(10f);
+            }
 
             bool lockApparel = slot.lockApparel;
 
@@ -67,6 +85,20 @@ namespace WardrobeAttendant
                 slot.lockApparel
                     ? "WardrobeAttendant.Slot.LockedDesc".Translate()
                     : "WardrobeAttendant.Slot.UnlockedDesc".Translate());
+
+            if (slot.lockApparel)
+            {
+                listing.Gap(4f);
+
+                bool allowWorkerRemoveLocked = slot.allowWorkerRemoveLocked;
+
+                listing.CheckboxLabeled(
+                    "WardrobeAttendant.Slot.AllowWorkerRemoveLocked".Translate(),
+                    ref allowWorkerRemoveLocked,
+                    "WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc".Translate());
+
+                slot.allowWorkerRemoveLocked = allowWorkerRemoveLocked;
+            }
 
             listing.Gap(14f);
 
@@ -86,10 +118,18 @@ namespace WardrobeAttendant
                 listing.Label(
                     "WardrobeAttendant.Slot.MinimumCondition".Translate(
                         Mathf.RoundToInt(slot.durabilityThreshold * 100f)));
-            }
 
-            if (slot.useDurabilityThreshold)
-            {
+                listing.Gap(4f);
+
+                bool allowEarlyReplacement = slot.allowEarlyReplacement;
+
+                listing.CheckboxLabeled(
+                    "WardrobeAttendant.Slot.AllowEarlyReplacement".Translate(),
+                    ref allowEarlyReplacement,
+                    "WardrobeAttendant.Slot.AllowEarlyReplacementDesc".Translate());
+
+                slot.allowEarlyReplacement = allowEarlyReplacement;
+
                 listing.Gap(4f);
 
                 bool removeAtThreshold = slot.removeAtDurabilityThreshold;
@@ -119,33 +159,43 @@ namespace WardrobeAttendant
                 listing.Gap(4f);
 
                 bool prioritizeCold = slot.prioritizeCold;
+
                 listing.CheckboxLabeled(
                     "WardrobeAttendant.Slot.PrioritizeCold".Translate(),
                     ref prioritizeCold);
+
                 slot.prioritizeCold = prioritizeCold;
 
                 bool prioritizeHeat = slot.prioritizeHeat;
+
                 listing.CheckboxLabeled(
                     "WardrobeAttendant.Slot.PrioritizeHeat".Translate(),
                     ref prioritizeHeat);
+
                 slot.prioritizeHeat = prioritizeHeat;
 
                 bool prioritizeArmor = slot.prioritizeArmor;
+
                 listing.CheckboxLabeled(
                     "WardrobeAttendant.Slot.PrioritizeArmor".Translate(),
                     ref prioritizeArmor);
+
                 slot.prioritizeArmor = prioritizeArmor;
 
                 bool prioritizeToxicity = slot.prioritizeToxicity;
+
                 listing.CheckboxLabeled(
                     "WardrobeAttendant.Slot.PrioritizeToxicity".Translate(),
                     ref prioritizeToxicity);
+
                 slot.prioritizeToxicity = prioritizeToxicity;
 
                 bool prioritizeVacuum = slot.prioritizeVacuum;
+
                 listing.CheckboxLabeled(
                     "WardrobeAttendant.Slot.PrioritizeVacuum".Translate(),
                     ref prioritizeVacuum);
+
                 slot.prioritizeVacuum = prioritizeVacuum;
             }
 
@@ -243,8 +293,6 @@ namespace WardrobeAttendant
                 searchText = listing.TextEntry(searchText);
                 listing.Gap(4f);
 
-                // Clamp the list height: with a strongly resized window the
-                // expression below can go negative and break the scroll view.
                 float listHeight = Mathf.Max(
                     60f,
                     inRect.height - listing.CurHeight - 50f);
@@ -271,8 +319,10 @@ namespace WardrobeAttendant
 
                 float y = 0f;
 
-                foreach (var def in apparelDefs)
+                for (int i = 0; i < apparelDefs.Count; i++)
                 {
+                    ThingDef def = apparelDefs[i];
+
                     Rect rowRect = new Rect(0f, y, viewRect.width, rowHeight);
 
                     if (Widgets.ButtonText(rowRect, def.LabelCap))

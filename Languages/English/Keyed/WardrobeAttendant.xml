@@ -14,7 +14,7 @@
 
 	<WardrobeAttendant.Slot.EditTitle>Edit slot: {0}</WardrobeAttendant.Slot.EditTitle>
 	<WardrobeAttendant.Slot.LockApparel>Lock apparel after equipping</WardrobeAttendant.Slot.LockApparel>
-	<WardrobeAttendant.Slot.LockedDesc>Wardrobe will lock this apparel after equipping it. Only the player can unlock and remove it.</WardrobeAttendant.Slot.LockedDesc>
+	<WardrobeAttendant.Slot.LockedDesc>Wardrobe Attendant will lock this apparel after equipping it. This prevents the mod from racing vanilla self-equipping. Only the player or a Wardrobe Attendant worker can unlock or remove it.</WardrobeAttendant.Slot.LockedDesc>
 	<WardrobeAttendant.Slot.UnlockedDesc>Apparel will remain unlocked.</WardrobeAttendant.Slot.UnlockedDesc>
 	<WardrobeAttendant.Slot.UseDurability>Replace apparel below durability threshold</WardrobeAttendant.Slot.UseDurability>
 	<WardrobeAttendant.Slot.MinimumCondition>Minimum condition: {0}%</WardrobeAttendant.Slot.MinimumCondition>
@@ -65,5 +65,21 @@
 	<WardrobeAttendant.Summary.CorpseApparelForbidden>No corpse-worn apparel</WardrobeAttendant.Summary.CorpseApparelForbidden>
 	<WardrobeAttendant.Summary.CorpseApparelAllowed>Corpse-worn apparel allowed</WardrobeAttendant.Summary.CorpseApparelAllowed>
 	<WardrobeAttendant.Summary.OnlyCorpseApparel>Corpse-worn apparel only</WardrobeAttendant.Summary.OnlyCorpseApparel>
+
+	<WardrobeAttendant.Slot.AllowSelfService>Allow this colonist to service their own wardrobe</WardrobeAttendant.Slot.AllowSelfService>
+	<WardrobeAttendant.Slot.AllowSelfServiceDesc>When disabled, this apparel slot will not be serviced by the pawn who owns it.</WardrobeAttendant.Slot.AllowSelfServiceDesc>
+
+	<WardrobeAttendant.Slot.AllowEarlyReplacement>Allow replacing current apparel before its durability threshold</WardrobeAttendant.Slot.AllowEarlyReplacement>
+	<WardrobeAttendant.Slot.AllowEarlyReplacementDesc>When enabled, a better available candidate can replace current apparel before it falls below the durability threshold. Requires a score advantage of at least 10.</WardrobeAttendant.Slot.AllowEarlyReplacementDesc>
+
+	<WardrobeAttendant.Slot.AllowWorkerRemoveLocked>Allow Wardrobe Attendant workers to remove locked apparel</WardrobeAttendant.Slot.AllowWorkerRemoveLocked>
+	<WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>When enabled, a Wardrobe Attendant worker may remove or replace this locked apparel. When disabled, only the player can remove it.</WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>
+
+	<WardrobeAttendant.Summary.EarlyReplacement>Early replacement</WardrobeAttendant.Summary.EarlyReplacement>
+	<WardrobeAttendant.Summary.NoEarlyReplacement>No early replacement</WardrobeAttendant.Summary.NoEarlyReplacement>
+	<WardrobeAttendant.Summary.SelfService>Self-service</WardrobeAttendant.Summary.SelfService>
+	<WardrobeAttendant.Summary.NoSelfService>No self-service</WardrobeAttendant.Summary.NoSelfService>
+	<WardrobeAttendant.Summary.WorkerCanRemoveLocked>Worker may remove locked</WardrobeAttendant.Summary.WorkerCanRemoveLocked>
+	<WardrobeAttendant.Summary.WorkerCannotRemoveLocked>Worker cannot remove locked</WardrobeAttendant.Summary.WorkerCannotRemoveLocked>
 
 </LanguageData>

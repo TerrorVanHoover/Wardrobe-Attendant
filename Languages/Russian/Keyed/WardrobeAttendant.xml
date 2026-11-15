@@ -14,7 +14,7 @@
 
 	<WardrobeAttendant.Slot.EditTitle>Изменить слот: {0}</WardrobeAttendant.Slot.EditTitle>
 	<WardrobeAttendant.Slot.LockApparel>Заблокировать одежду после надевания</WardrobeAttendant.Slot.LockApparel>
-	<WardrobeAttendant.Slot.LockedDesc>Гардероб заблокирует эту одежду после надевания. Разблокировать и снять её сможет только игрок.</WardrobeAttendant.Slot.LockedDesc>
+	<WardrobeAttendant.Slot.LockedDesc>Гардеробщик заблокирует эту одежду после надевания, что позволит исключить гонку мода с ванильным переодеванием. Разблокировать и снять её может только игрок или колонист с работой Гардеробщик.</WardrobeAttendant.Slot.LockedDesc>
 	<WardrobeAttendant.Slot.UnlockedDesc>Одежда останется незаблокированной.</WardrobeAttendant.Slot.UnlockedDesc>
 	<WardrobeAttendant.Slot.UseDurability>Заменять одежду ниже порога прочности</WardrobeAttendant.Slot.UseDurability>
 	<WardrobeAttendant.Slot.MinimumCondition>Минимальная прочность: {0}%</WardrobeAttendant.Slot.MinimumCondition>
@@ -65,5 +65,21 @@
 	<WardrobeAttendant.Summary.CorpseApparelForbidden>Без одежды с трупов</WardrobeAttendant.Summary.CorpseApparelForbidden>
 	<WardrobeAttendant.Summary.CorpseApparelAllowed>Одежда с трупов разрешена</WardrobeAttendant.Summary.CorpseApparelAllowed>
 	<WardrobeAttendant.Summary.OnlyCorpseApparel>Только одежда с трупов</WardrobeAttendant.Summary.OnlyCorpseApparel>
+
+	<WardrobeAttendant.Slot.AllowSelfService>Разрешить этому колонисту обслуживать свой гардероб</WardrobeAttendant.Slot.AllowSelfService>
+	<WardrobeAttendant.Slot.AllowSelfServiceDesc>Если отключено, этот слот одежды не будет обслуживаться самим владельцем гардероба.</WardrobeAttendant.Slot.AllowSelfServiceDesc>
+
+	<WardrobeAttendant.Slot.AllowEarlyReplacement>Разрешить заменять текущую вещь до достижения порога прочности</WardrobeAttendant.Slot.AllowEarlyReplacement>
+	<WardrobeAttendant.Slot.AllowEarlyReplacementDesc>Если включено, более подходящая доступная вещь может заменить текущую до достижения порога прочности. Требуется преимущество по score минимум на 10.</WardrobeAttendant.Slot.AllowEarlyReplacementDesc>
+
+	<WardrobeAttendant.Slot.AllowWorkerRemoveLocked>Разрешить работнику Гардеробщик снимать заблокированную одежду</WardrobeAttendant.Slot.AllowWorkerRemoveLocked>
+	<WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>Если включено, работник Гардеробщик может снять или заменить эту заблокированную одежду. Если отключено, снять её сможет только игрок.</WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>
+
+	<WardrobeAttendant.Summary.EarlyReplacement>Ранняя замена</WardrobeAttendant.Summary.EarlyReplacement>
+	<WardrobeAttendant.Summary.NoEarlyReplacement>Без ранней замены</WardrobeAttendant.Summary.NoEarlyReplacement>
+	<WardrobeAttendant.Summary.SelfService>Самообслуживание</WardrobeAttendant.Summary.SelfService>
+	<WardrobeAttendant.Summary.NoSelfService>Без самообслуживания</WardrobeAttendant.Summary.NoSelfService>
+	<WardrobeAttendant.Summary.WorkerCanRemoveLocked>Работник может снимать locked</WardrobeAttendant.Summary.WorkerCanRemoveLocked>
+	<WardrobeAttendant.Summary.WorkerCannotRemoveLocked>Работник не может снимать locked</WardrobeAttendant.Summary.WorkerCannotRemoveLocked>
 
 </LanguageData>
