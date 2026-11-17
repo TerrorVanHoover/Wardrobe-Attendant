@@ -57,13 +57,18 @@ namespace WardrobeAttendant
                 return false;
             }
 
-            return pawn.Reserve(
-                target,
-                job,
-                1,
-                -1,
-                null,
-                errorOnFailed);
+            if (pawn != target)
+            {
+                return pawn.Reserve(
+                    target,
+                    job,
+                    1,
+                    -1,
+                    null,
+                    errorOnFailed);
+            }
+
+            return true;
         }
 
         protected override IEnumerable<Toil> MakeNewToils()

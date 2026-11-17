@@ -9,5 +9,14 @@
 		<reportString>removing TargetB_label</reportString>
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
+	
+	<JobDef>
+		<defName>WardrobeAttendant_SelfWearApparel</defName>
+		<label>wardrobe self-service</label>
+		<description>Self-service: put on apparel selected by a wardrobe slot.</description>
+		<driverClass>WardrobeAttendant.JobDriver_WardrobeSelfWear</driverClass>
+		<reportString>putting on TargetB.</reportString>
+		<playerSelectable>false</playerSelectable>
+	</JobDef>
 
 </Defs>

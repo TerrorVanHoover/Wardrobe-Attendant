@@ -21,6 +21,7 @@
 		- Protection scoring always includes condition, uses normalized cold and heat insulation, toxicity resistance and vacuum resistance. Vacuum protection receives the strongest weight, followed by toxicity protection.
 		- Vanilla self-equipping is prevented from re-equipping apparel that Wardrobe Attendant recently displaced through early replacement.
 		- Vanilla self-equipping is prevented from selecting below-threshold apparel when a suitable replacement is available.
+		- Self-service uses a dedicated self-wear path and respects the same outfit policy, protection, durability, corpse and locked-apparel rules.
 		- Optionally lock suitable apparel after it is equipped by a Wardrobe Attendant job.
 		- Optionally replace apparel after it falls below its durability threshold and a better permitted replacement is available.
 		- Optionally remove apparel after it falls below its durability threshold when no compatible replacement is available; a worker removes all eligible worn-out items in one visit, only after completing the removal work. Interrupting the work does not remove apparel.
@@ -41,6 +42,8 @@
 		- When protection priorities are enabled, apparel is selected using the selected protection weights; quality, condition and market value are not used.
 		- When no protection priority is enabled, apparel is selected using quality, condition and market value.
 		- Optionally allow corpse-worn apparel, optionally restrict a rule to corpse-worn apparel only, while always respecting the pawn's vanilla apparel policy. Corpse-worn apparel settings apply independently to each apparel rule.
+		- A slot restricted to corpse-worn apparel replaces or removes currently worn non-corpse apparel when a suitable corpse-worn replacement is or is not available.
+		- A slot restricted to corpse-worn apparel replaces or removes matching non-corpse apparel when a suitable corpse-worn replacement is or is not available.
 		- Duplicate dressing and removal jobs are avoided through job, reservation and cached active-job checks.
 		- Compatible with animal apparel and modded races through RimWorld's apparel wearability checks.
 		- The Wardrobe button highlights green when a pawn has at least one enabled apparel slot.

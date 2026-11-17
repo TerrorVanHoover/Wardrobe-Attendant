@@ -5,18 +5,19 @@ using Verse.AI;
 
 namespace WardrobeAttendant
 {
-	[HarmonyPatch(typeof(JobDriver), nameof(JobDriver.Cleanup))]
-	public static class JobDriver_Cleanup_WardrobeLifecycle_Patch
-	{
-		public static void Postfix(JobDriver __instance, JobCondition condition)
-		{
-			try
-			{
-				Job job = __instance?.job;
+    [HarmonyPatch(typeof(JobDriver), nameof(JobDriver.Cleanup))]
+    public static class JobDriver_Cleanup_WardrobeLifecycle_Patch
+    {
+        public static void Postfix(JobDriver __instance, JobCondition condition)
+        {
+            try
+            {
+                Job job = __instance?.job;
 
                 if (job == null ||
-    (job.def != WardrobeJobDefOf.WardrobeAttendant_RemoveApparel &&
-     job.def != JobDefOf.ForceTargetWear))
+                    (job.def != WardrobeJobDefOf.WardrobeAttendant_RemoveApparel &&
+                     job.def != JobDefOf.ForceTargetWear &&
+                     job.def != WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel))
                 {
                     return;
                 }
@@ -31,14 +32,24 @@ namespace WardrobeAttendant
                         $"apparel={job.targetB.Thing?.LabelShortCap ?? "null"}");
                 }
 
+                if (WardrobeModSettingsExtensions.DebugLoggingEnabled &&
+                    job.def == WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel)
+                {
+                    Log.Message(
+                        $"[Wardrobe] SelfWear cleanup: " +
+                        $"condition={condition}, " +
+                        $"target={job.targetA.Thing?.LabelShortCap ?? "null"}, " +
+                        $"apparel={job.targetB.Thing?.LabelShortCap ?? "null"}");
+                }
+
                 WardrobeGameComponent.Get?
                     .ClearPendingJobsForJob(job, condition);
             }
-			catch (System.Exception ex)
-			{
-				Log.Error(
-					"[Wardrobe Attendant] Job lifecycle cleanup failed: " + ex);
-			}
-		}
-	}
+            catch (System.Exception ex)
+            {
+                Log.Error(
+                    "[Wardrobe Attendant] Job lifecycle cleanup failed: " + ex);
+            }
+        }
+    }
 }

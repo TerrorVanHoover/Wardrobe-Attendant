@@ -8,6 +8,8 @@ namespace WardrobeAttendant
     {
         public static JobDef WardrobeAttendant_RemoveApparel;
 
+        public static JobDef WardrobeAttendant_SelfWearApparel;
+
         static WardrobeJobDefOf()
         {
             DefOfHelper.EnsureInitializedInCtor(typeof(WardrobeJobDefOf));

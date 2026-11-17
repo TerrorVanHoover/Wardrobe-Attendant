@@ -25,8 +25,12 @@ namespace WardrobeAttendant
         private readonly Dictionary<int, PendingWardrobeJob> pendingRemoveApparelJobs =
             new Dictionary<int, PendingWardrobeJob>();
 
-        private readonly Dictionary<int, PendingWardrobeJob> pendingLockApparelJobs =
+        private Dictionary<int, PendingWardrobeJob> pendingLockApparelJobs =
             new Dictionary<int, PendingWardrobeJob>();
+
+        private List<int> pendingLockApparelKeys;
+
+        private List<PendingWardrobeJob> pendingLockApparelValues;
 
         private static readonly List<int> ExpiredPendingJobIds =
             new List<int>();
@@ -435,6 +439,18 @@ namespace WardrobeAttendant
                 {
                     ClearByJobId(pendingTargetJobs, jobId);
                 }
+
+                return;
+            }
+
+            if (job.def == WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel)
+            {
+                ClearByJobId(pendingLockApparelJobs, jobId);
+
+                if (condition == JobCondition.Succeeded)
+                {
+                    ClearByJobId(pendingTargetJobs, jobId);
+                }
             }
         }
 
@@ -598,6 +614,22 @@ namespace WardrobeAttendant
             Scribe_Values.Look(ref saveVersion, "saveVersion", 0);
             Scribe_Collections.Look(ref assignments, "assignments", LookMode.Deep);
 
+            if (Scribe.mode == LoadSaveMode.Saving)
+            {
+                pendingLockApparelKeys = new List<int>(pendingLockApparelJobs.Keys);
+                pendingLockApparelValues = new List<PendingWardrobeJob>(pendingLockApparelJobs.Values);
+            }
+
+            Scribe_Collections.Look(
+                ref pendingLockApparelKeys,
+                "pendingLockApparelKeys",
+                LookMode.Value);
+
+            Scribe_Collections.Look(
+                ref pendingLockApparelValues,
+                "pendingLockApparelValues",
+                LookMode.Deep);
+
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 MigrateLoadedData();
@@ -606,7 +638,101 @@ namespace WardrobeAttendant
 
                 pendingTargetJobs.Clear();
                 pendingRemoveApparelJobs.Clear();
-                pendingLockApparelJobs.Clear();
+
+                RebuildLoadedLockPending();
+            }
+        }
+
+        private void RebuildLoadedLockPending()
+        {
+            pendingLockApparelJobs.Clear();
+
+            if (pendingLockApparelKeys == null ||
+                pendingLockApparelValues == null ||
+                pendingLockApparelKeys.Count != pendingLockApparelValues.Count)
+            {
+                pendingLockApparelKeys = null;
+                pendingLockApparelValues = null;
+                return;
+            }
+
+            List<int> keysToRemove = null;
+
+            for (int i = 0; i < pendingLockApparelKeys.Count; i++)
+            {
+                PendingWardrobeJob pending = pendingLockApparelValues[i];
+
+                if (pending == null)
+                {
+                    continue;
+                }
+
+                if (pending.job != null)
+                {
+                    pending.jobId = pending.job.loadID;
+                }
+
+                if (pending.expiresAt <= CurrentTick)
+                {
+                    keysToRemove ??= new List<int>();
+                    keysToRemove.Add(pendingLockApparelKeys[i]);
+                    continue;
+                }
+
+                pendingLockApparelJobs[pendingLockApparelKeys[i]] = pending;
+            }
+
+            if (keysToRemove == null)
+            {
+                pendingLockApparelKeys = null;
+                pendingLockApparelValues = null;
+                return;
+            }
+
+            for (int i = 0; i < keysToRemove.Count; i++)
+            {
+                pendingLockApparelJobs.Remove(keysToRemove[i]);
+            }
+
+            pendingLockApparelKeys = null;
+            pendingLockApparelValues = null;
+        }
+
+        private void PruneLoadedLockPending()
+        {
+            List<int> keysToRemove = null;
+
+            foreach (var pair in pendingLockApparelJobs)
+            {
+                PendingWardrobeJob pending = pair.Value;
+
+                if (pending == null)
+                {
+                    keysToRemove ??= new List<int>();
+                    keysToRemove.Add(pair.Key);
+                    continue;
+                }
+
+                if (pending.job != null)
+                {
+                    pending.jobId = pending.job.loadID;
+                }
+
+                if (pending.expiresAt <= CurrentTick)
+                {
+                    keysToRemove ??= new List<int>();
+                    keysToRemove.Add(pair.Key);
+                }
+            }
+
+            if (keysToRemove == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < keysToRemove.Count; i++)
+            {
+                pendingLockApparelJobs.Remove(keysToRemove[i]);
             }
         }
 
@@ -676,13 +802,22 @@ namespace WardrobeAttendant
             }
         }
 
-        public sealed class PendingWardrobeJob
+        public sealed class PendingWardrobeJob : IExposable
         {
             public int jobId;
             public int targetId;
             public int expiresAt;
             public Job job;
             public Pawn target;
+
+            public void ExposeData()
+            {
+                Scribe_Values.Look(ref jobId, "jobId", 0);
+                Scribe_Values.Look(ref targetId, "targetId", -1);
+                Scribe_Values.Look(ref expiresAt, "expiresAt", 0);
+                Scribe_References.Look(ref job, "job");
+                Scribe_References.Look(ref target, "target");
+            }
         }
     }
 }

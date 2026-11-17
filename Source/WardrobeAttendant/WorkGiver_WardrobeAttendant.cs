@@ -100,7 +100,6 @@ namespace WardrobeAttendant
                     }
                 }
             }
-
             else if (job.def == JobDefOf.ForceTargetWear &&
                 job.targetB.Thing is Apparel apparelToWear)
             {
@@ -109,6 +108,15 @@ namespace WardrobeAttendant
                 MarkApparelDisplacedByEarlyReplacement(
                     target,
                     apparelToWear);
+            }
+            else if (job.def == WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel &&
+                job.targetB.Thing is Apparel selfWearApparel)
+            {
+                component.TryMarkLockPending(selfWearApparel, job);
+
+                MarkApparelDisplacedByEarlyReplacement(
+                    target,
+                    selfWearApparel);
             }
 
             return job;
@@ -434,11 +442,15 @@ namespace WardrobeAttendant
                     continue;
                 }
 
-                var job = FindExactItemJob(
-                    target, slot, worker, mapApparel, wornApparel, policy, protectedExactDefs);
+                var job = FindExactItemJob(target, slot, worker, mapApparel, wornApparel, policy, protectedExactDefs);
 
                 if (job != null)
                 {
+                    if (worker == target)
+                    {
+                        job = MakeSelfWearJob(job);
+                    }
+
                     LogWearJob(target, slot, job);
                     return job;
                 }
@@ -471,19 +483,15 @@ namespace WardrobeAttendant
                     continue;
                 }
 
-                var job = FindFullOutfitJob(
-                    target,
-                    slot,
-                    worker,
-                    mapApparel,
-                    slots,
-                    wornApparel,
-                    policy,
-                    protectedExactDefs,
-                    availableExactDefs);
+                var job = FindFullOutfitJob(target, slot, worker, mapApparel, slots, wornApparel, policy, protectedExactDefs, availableExactDefs);
 
                 if (job != null)
                 {
+                    if (worker == target)
+                    {
+                        job = MakeSelfWearJob(job);
+                    }
+
                     LogWearJob(target, slot, job);
                     return job;
                 }
@@ -501,7 +509,6 @@ namespace WardrobeAttendant
         private static bool IsValidTarget(Pawn worker, Pawn target)
         {
             if (target == null ||
-                target == worker ||
                 !target.Spawned ||
                 target.Dead ||
                 target.Downed ||
@@ -618,6 +625,13 @@ namespace WardrobeAttendant
                     currentJob.targetA.Thing is Pawn dressingTarget)
                 {
                     cache.DressingTargetIds.Add(dressingTarget.thingIDNumber);
+                    continue;
+                }
+
+                if (currentJob.def == WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel &&
+                    currentJob.targetA.Thing is Pawn selfDressingTarget)
+                {
+                    cache.DressingTargetIds.Add(selfDressingTarget.thingIDNumber);
                     continue;
                 }
 
@@ -738,10 +752,72 @@ namespace WardrobeAttendant
             return job;
         }
 
-        private static bool IsApparelLocked(Pawn target, Apparel apparel)
+        public static bool IsApparelLocked(Pawn target, Apparel apparel)
         {
             return target?.outfits?.forcedHandler != null &&
                    target.outfits.forcedHandler.IsForced(apparel);
+        }
+
+        public static bool TryGetSelfWearSlot(Pawn target, Apparel apparel, out WardrobeSlot slot)
+        {
+            slot = null;
+
+            if (target == null || apparel == null)
+            {
+                return false;
+            }
+
+            WardrobeGameComponent component = WardrobeGameComponent.Get;
+
+            if (component == null || !component.TryGetSlots(target, out List<WardrobeSlot> slots))
+            {
+                return false;
+            }
+
+            List<Thing> mapApparel = GetMapApparel(target.Map);
+            List<Apparel> wornApparel = target.apparel.WornApparel;
+            ApparelPolicy policy = target.outfits?.CurrentApparelPolicy;
+            HashSet<ThingDef> protectedExactDefs = GetProtectedExactDefs(target);
+            List<ThingDef> availableExactDefs = GetAvailableExactDefs(target, target, mapApparel, slots, policy);
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                WardrobeSlot candidateSlot = slots[i];
+
+                if (candidateSlot == null || !candidateSlot.enabled)
+                {
+                    continue;
+                }
+
+                if (candidateSlot.mode == WardrobeSlotMode.ExactItem)
+                {
+                    if (apparel.def == candidateSlot.exactApparelDef &&
+                        CanUseExactCandidate(target, candidateSlot, apparel, wornApparel, protectedExactDefs))
+                    {
+                        slot = candidateSlot;
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (candidateSlot.mode == WardrobeSlotMode.FullOutfit &&
+                    candidateSlot.AllowsApparel(apparel) &&
+                    candidateSlot.AllowsCorpseApparel(apparel) &&
+                    CanUseFullOutfitCandidate(
+                        target,
+                        candidateSlot,
+                        apparel,
+                        wornApparel,
+                        protectedExactDefs,
+                        availableExactDefs))
+                {
+                    slot = candidateSlot;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool IsRemovalStillValid(
@@ -1280,6 +1356,22 @@ namespace WardrobeAttendant
                 : null;
         }
 
+        private static Job MakeSelfWearJob(Job wearJob)
+        {
+            Pawn target = wearJob.targetA.Thing as Pawn;
+            Apparel apparel = wearJob.targetB.Thing as Apparel;
+
+            if (target == null || apparel == null)
+            {
+                return wearJob;
+            }
+
+            return JobMaker.MakeJob(
+                WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel,
+                target,
+                apparel);
+        }
+
         private static bool CanUseFullOutfitCandidate(
             Pawn target,
             WardrobeSlot slot,
@@ -1556,10 +1648,17 @@ namespace WardrobeAttendant
         }
 
         private static bool ShouldReplaceFullOutfitWornApparel(
-            WardrobeSlot slot,
-            Apparel candidate,
-            Apparel worn)
+    WardrobeSlot slot,
+    Apparel candidate,
+    Apparel worn)
         {
+            if (slot.onlyCorpseApparel &&
+                candidate.WornByCorpse &&
+                !worn.WornByCorpse)
+            {
+                return true;
+            }
+
             float candidateScore = GetScore(candidate, slot);
             float wornScore = GetScore(worn, slot);
 
@@ -1794,11 +1893,12 @@ namespace WardrobeAttendant
         }
 
         private static bool NeedsExactReplacement(
-    WardrobeSlot slot,
-    List<Apparel> wornApparel,
-    Apparel candidate)
+            WardrobeSlot slot,
+            List<Apparel> wornApparel,
+            Apparel candidate)
         {
             Apparel currentBest = null;
+            bool hasCorpseWornItem = false;
 
             int wornCount = wornApparel?.Count ?? 0;
 
@@ -1814,6 +1914,11 @@ namespace WardrobeAttendant
                     continue;
                 }
 
+                if (apparel.WornByCorpse)
+                {
+                    hasCorpseWornItem = true;
+                }
+
                 if (currentBest == null ||
                     GetScore(apparel, slot) > GetScore(currentBest, slot))
                 {
@@ -1822,6 +1927,11 @@ namespace WardrobeAttendant
             }
 
             if (currentBest == null)
+            {
+                return true;
+            }
+
+            if (slot.onlyCorpseApparel && !hasCorpseWornItem)
             {
                 return true;
             }
@@ -1878,12 +1988,23 @@ namespace WardrobeAttendant
         }
 
         private static bool IsRemovalCandidate(
-            Apparel apparel,
-            WardrobeSlot slot)
+    Apparel apparel,
+    WardrobeSlot slot)
         {
             if (apparel == null || slot == null)
             {
                 return false;
+            }
+
+            if (slot.mode == WardrobeSlotMode.ExactItem &&
+                apparel.def != slot.exactApparelDef)
+            {
+                return false;
+            }
+
+            if (slot.onlyCorpseApparel && !apparel.WornByCorpse)
+            {
+                return true;
             }
 
             bool failsQualityFilter = !slot.MatchesApparelIgnoreDurability(apparel);
@@ -1891,12 +2012,6 @@ namespace WardrobeAttendant
             bool belowDurabilityThreshold =
                 slot.useDurabilityThreshold &&
                 GetCondition(apparel) < slot.durabilityThreshold;
-
-            if (slot.mode == WardrobeSlotMode.ExactItem)
-            {
-                return apparel.def == slot.exactApparelDef &&
-                       (failsQualityFilter || belowDurabilityThreshold);
-            }
 
             return failsQualityFilter || belowDurabilityThreshold;
         }
