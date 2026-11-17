@@ -78,7 +78,7 @@ namespace WardrobeAttendant
                     return;
                 }
 
-                pawn.apparel.Wear(Apparel, slot.lockApparel);
+                pawn.apparel.Wear(Apparel, true);
             };
             wear.defaultCompleteMode = ToilCompleteMode.Instant;
 

@@ -10,7 +10,9 @@ namespace WardrobeAttendant
     {
         public static bool Prefix(
             Pawn_ApparelTracker __instance,
-            Apparel newApparel)
+            Apparel newApparel,
+            bool dropReplacedApparel,
+            ref bool locked)
         {
             try
             {
@@ -26,8 +28,8 @@ namespace WardrobeAttendant
                 }
 
                 bool isPolicyAllowed =
-    target.outfits?.CurrentApparelPolicy == null ||
-    target.outfits.CurrentApparelPolicy.filter.Allows(newApparel);
+                    target.outfits?.CurrentApparelPolicy == null ||
+                    target.outfits.CurrentApparelPolicy.filter.Allows(newApparel);
 
                 bool isValid =
                     target.Spawned &&
@@ -56,6 +58,18 @@ namespace WardrobeAttendant
 
                 if (isValid)
                 {
+                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+                    {
+                        Log.Message(
+                            $"[Wardrobe] Wear Prefix: " +
+                            $"pending.slot={(pending.slot != null ? pending.slot.slotName : "null")}, " +
+                            $"lockApparel={(pending.slot?.lockApparel ?? false)}");
+                    }
+
+                    locked = pending.slot != null &&
+                             pending.slot.enabled &&
+                             pending.slot.lockApparel;
+
                     return true;
                 }
 
@@ -81,8 +95,8 @@ namespace WardrobeAttendant
         }
 
         public static void Postfix(
-            Pawn_ApparelTracker __instance,
-            Apparel newApparel)
+    Pawn_ApparelTracker __instance,
+    Apparel newApparel)
         {
             try
             {
@@ -92,7 +106,7 @@ namespace WardrobeAttendant
                 if (pawn == null ||
                     newApparel == null ||
                     component == null ||
-                    !component.IsLockPending(newApparel))
+                    !component.TryGetLockPending(newApparel, out var pending))
                 {
                     return;
                 }
@@ -104,34 +118,21 @@ namespace WardrobeAttendant
                     WorkGiver_WardrobeAttendant.InvalidateExactCandidateCache();
                 }
 
-                if (pawn.outfits?.forcedHandler == null ||
-                    !component.TryGetSlots(pawn, out var slots))
+                var slot = pending.slot;
+
+                if (slot == null ||
+                    !slot.enabled ||
+                    !slot.lockApparel)
                 {
                     return;
                 }
 
-                for (int i = 0; i < slots.Count; i++)
+                if (pawn.outfits?.forcedHandler == null)
                 {
-                    var slot = slots[i];
-
-                    if (slot == null ||
-                        !slot.enabled ||
-                        !slot.lockApparel)
-                    {
-                        continue;
-                    }
-
-                    bool shouldForce = slot.mode == WardrobeSlotMode.ExactItem
-                        ? slot.exactApparelDef == newApparel.def &&
-                          slot.AllowsApparel(newApparel)
-                        : slot.AllowsApparel(newApparel);
-
-                    if (shouldForce)
-                    {
-                        pawn.outfits.forcedHandler.SetForced(newApparel, true);
-                        return;
-                    }
+                    return;
                 }
+
+                pawn.outfits.forcedHandler.SetForced(newApparel, true);
             }
             catch (Exception ex)
             {

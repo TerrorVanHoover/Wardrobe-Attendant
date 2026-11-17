@@ -73,7 +73,7 @@ namespace WardrobeAttendant
         {
             var target = thing as Pawn;
             var component = WardrobeGameComponent.Get;
-            var job = GetCachedJob(worker, thing, issueJob: true);
+            var job = GetCachedJob(worker, thing, issueJob: true, out var jobSlot);
 
             if (job == null || target == null || component == null)
             {
@@ -103,7 +103,7 @@ namespace WardrobeAttendant
             else if (job.def == JobDefOf.ForceTargetWear &&
                 job.targetB.Thing is Apparel apparelToWear)
             {
-                component.TryMarkLockPending(apparelToWear, job);
+                component.TryMarkLockPending(apparelToWear, job, jobSlot);
 
                 MarkApparelDisplacedByEarlyReplacement(
                     target,
@@ -112,7 +112,7 @@ namespace WardrobeAttendant
             else if (job.def == WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel &&
                 job.targetB.Thing is Apparel selfWearApparel)
             {
-                component.TryMarkLockPending(selfWearApparel, job);
+                component.TryMarkLockPending(selfWearApparel, job, jobSlot);
 
                 MarkApparelDisplacedByEarlyReplacement(
                     target,
@@ -217,6 +217,17 @@ namespace WardrobeAttendant
 
         private static Job GetCachedJob(Pawn worker, Thing thing, bool issueJob)
         {
+            return GetCachedJob(worker, thing, issueJob, out _);
+        }
+
+        private static Job GetCachedJob(
+            Pawn worker,
+            Thing thing,
+            bool issueJob,
+            out WardrobeSlot jobSlot)
+        {
+            jobSlot = null;
+
             if (worker == null || thing == null)
             {
                 return null;
@@ -234,7 +245,7 @@ namespace WardrobeAttendant
                 return cached.Job;
             }
 
-            Job job = FindJobFor(worker, thing, issueJob);
+            Job job = FindJobFor(worker, thing, issueJob, out jobSlot);
 
             if (job == null)
             {
@@ -312,8 +323,13 @@ namespace WardrobeAttendant
             ExactCandidateCacheTick = -1;
         }
 
-        private static Job FindJobFor(Pawn worker, Thing thing, bool issueJob)
+        private static Job FindJobFor(
+            Pawn worker,
+            Thing thing,
+            bool issueJob,
+            out WardrobeSlot jobSlot)
         {
+            jobSlot = null;
             var target = thing as Pawn;
 
             if (!IsValidTarget(worker, target))
@@ -451,6 +467,8 @@ namespace WardrobeAttendant
                         job = MakeSelfWearJob(job);
                     }
 
+                    jobSlot = slot;
+
                     LogWearJob(target, slot, job);
                     return job;
                 }
@@ -491,6 +509,8 @@ namespace WardrobeAttendant
                     {
                         job = MakeSelfWearJob(job);
                     }
+
+                    jobSlot = slot;
 
                     LogWearJob(target, slot, job);
                     return job;

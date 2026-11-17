@@ -396,9 +396,26 @@ namespace WardrobeAttendant
             return true;
         }
 
-        public bool TryMarkLockPending(Apparel apparel, Job job)
+        public bool TryMarkLockPending(Apparel apparel, Job job, WardrobeSlot slot)
         {
-            return TryMarkPending(pendingLockApparelJobs, apparel, job);
+            int slotIndex = -1;
+
+            if (slot != null &&
+                job.GetTarget(TargetIndex.A).Thing is Pawn target &&
+                TryGetSlots(target, out var slots))
+            {
+                slotIndex = slots.IndexOf(slot);
+            }
+
+            if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+            {
+                Log.Message(
+                    $"[Wardrobe] TryMarkLockPending: " +
+                    $"slot={(slot != null ? slot.slotName : "null")}, " +
+                    $"slotIndex={slotIndex}");
+            }
+
+            return TryMarkPending(pendingLockApparelJobs, apparel, job, slot, slotIndex);
         }
 
         public void ClearLockPending(Apparel apparel)
@@ -502,7 +519,9 @@ namespace WardrobeAttendant
         private static bool TryMarkPending(
             Dictionary<int, PendingWardrobeJob> pendingJobs,
             Thing thing,
-            Job job)
+            Job job,
+            WardrobeSlot slot = null,
+            int slotIndex = -1)
         {
             if (thing == null || job == null)
             {
@@ -515,11 +534,12 @@ namespace WardrobeAttendant
                 targetId = job.GetTarget(TargetIndex.A).Thing?.thingIDNumber ?? -1,
                 expiresAt = CurrentTick + PendingJobDurationTicks,
                 job = job,
-                target = job.GetTarget(TargetIndex.A).Thing as Pawn
+                target = job.GetTarget(TargetIndex.A).Thing as Pawn,
+                slot = slot,
+                slotIndex = slotIndex
             };
 
             pendingJobs[thing.thingIDNumber] = pending;
-
             return true;
         }
 
@@ -682,6 +702,27 @@ namespace WardrobeAttendant
                 pendingLockApparelJobs[pendingLockApparelKeys[i]] = pending;
             }
 
+            foreach (var pair in pendingLockApparelJobs)
+            {
+                var pending = pair.Value;
+
+                if (pending == null || pending.slot != null)
+                {
+                    continue;
+                }
+
+                if (pending.target == null || pending.slotIndex < 0)
+                {
+                    continue;
+                }
+
+                if (TryGetSlots(pending.target, out var slots) &&
+                    pending.slotIndex < slots.Count)
+                {
+                    pending.slot = slots[pending.slotIndex];
+                }
+            }
+
             if (keysToRemove == null)
             {
                 pendingLockApparelKeys = null;
@@ -809,6 +850,8 @@ namespace WardrobeAttendant
             public int expiresAt;
             public Job job;
             public Pawn target;
+            public WardrobeSlot slot;
+            public int slotIndex = -1;
 
             public void ExposeData()
             {
@@ -817,6 +860,7 @@ namespace WardrobeAttendant
                 Scribe_Values.Look(ref expiresAt, "expiresAt", 0);
                 Scribe_References.Look(ref job, "job");
                 Scribe_References.Look(ref target, "target");
+                Scribe_Values.Look(ref slotIndex, "slotIndex", -1);
             }
         }
     }
