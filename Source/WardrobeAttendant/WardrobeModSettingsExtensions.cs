@@ -29,6 +29,13 @@ namespace WardrobeAttendant
             return _cachedSettings;
         }
 
+        public static void SaveSettings()
+        {
+            LoadedModManager
+                .GetMod<WardrobeAttendantMod>()
+                ?.WriteSettings();
+        }
+
         public static void InvalidateSettingsCache()
         {
             _cachedSettings = null;

@@ -82,4 +82,10 @@
 	<WardrobeAttendant.Summary.WorkerCanRemoveLocked>Работник может снимать locked</WardrobeAttendant.Summary.WorkerCanRemoveLocked>
 	<WardrobeAttendant.Summary.WorkerCannotRemoveLocked>Работник не может снимать locked</WardrobeAttendant.Summary.WorkerCannotRemoveLocked>
 
+	<WardrobeAttendant.Slot.UseProtectionPrioritiesDesc>Защита от вакуума и защита от токсичности имеют повышенный приоритет.</WardrobeAttendant.Slot.UseProtectionPrioritiesDesc>
+
+	<WardrobeAttendant.Settings.ResetWindowPositions>Сбросить положение всех окон мода</WardrobeAttendant.Settings.ResetWindowPositions>
+	<WardrobeAttendant.Settings.ResetWindowPositionsDesc>Восстанавливает размер и положение окон Wardrobe Attendant по умолчанию. Окна будут использовать стандартное размещение до следующего перемещения и закрытия.</WardrobeAttendant.Settings.ResetWindowPositionsDesc>
+	<WardrobeAttendant.Settings.WindowPositionsReset>Положение и размер всех окон мода сброшено.</WardrobeAttendant.Settings.WindowPositionsReset>
+
 </LanguageData>

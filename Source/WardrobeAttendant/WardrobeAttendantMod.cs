@@ -1,5 +1,7 @@
+using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace WardrobeAttendant
 {
@@ -55,6 +57,23 @@ namespace WardrobeAttendant
                 "WardrobeAttendant.Settings.SkipDraftedTargetsDesc".Translate());
 
             settings.SkipDraftedTargets = skipDraftedTargets;
+
+            listing.Gap(16f);
+
+            if (listing.ButtonText(
+                    "WardrobeAttendant.Settings.ResetWindowPositions".Translate()))
+            {
+                settings.ResetWindowPositions();
+                WardrobeModSettingsExtensions.SaveSettings();
+
+                SoundDefOf.Click.PlayOneShotOnCamera();
+
+                Find.WindowStack?.Add(
+                    new WardrobeMessageWindow(
+                        "WardrobeAttendant.Settings.WindowPositionsReset"
+                            .Translate()
+                            .ToString()));
+            }
 
             listing.End();
 

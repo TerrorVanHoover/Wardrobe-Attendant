@@ -16,7 +16,6 @@
 		<description>Self-service: put on apparel selected by a wardrobe slot.</description>
 		<driverClass>WardrobeAttendant.JobDriver_WardrobeSelfWear</driverClass>
 		<reportString>putting on TargetB.</reportString>
-		<playerSelectable>false</playerSelectable>
 	</JobDef>
 
 </Defs>

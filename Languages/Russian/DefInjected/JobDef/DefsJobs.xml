@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<WardrobeAttendant_RemoveApparel.label>снять одежду из гардероба</WardrobeAttendant_RemoveApparel.label>
+	<WardrobeAttendant_RemoveApparel.description>Снять один предмет одежды с пешки для Wardrobe Attendant.</WardrobeAttendant_RemoveApparel.description>
+	<WardrobeAttendant_RemoveApparel.reportString>снимает TargetB_label</WardrobeAttendant_RemoveApparel.reportString>
+
+	<WardrobeAttendant_SelfWearApparel.label>самообслуживание гардероба</WardrobeAttendant_SelfWearApparel.label>
+	<WardrobeAttendant_SelfWearApparel.description>Самообслуживание: надеть одежду, выбранную слотом гардероба.</WardrobeAttendant_SelfWearApparel.description>
+	<WardrobeAttendant_SelfWearApparel.reportString>надевает TargetB.</WardrobeAttendant_SelfWearApparel.reportString>
+
+</LanguageData>

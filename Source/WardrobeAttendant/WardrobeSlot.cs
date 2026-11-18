@@ -43,6 +43,18 @@ namespace WardrobeAttendant
         public QualityCategory minQuality = QualityCategory.Awful;
         public QualityCategory maxQuality = QualityCategory.Legendary;
 
+        private int _protectionSummarySignature = int.MinValue;
+        private string _protectionSummary;
+
+        private int _corpseSummarySignature = int.MinValue;
+        private string _corpseSummary;
+
+        private int _qualitySummarySignature = int.MinValue;
+        private string _qualitySummary;
+
+        private int _conditionSummarySignature = int.MinValue;
+        private string _conditionSummary;
+
         public void ExposeData()
         {
             Scribe_Values.Look(ref slotName, "slotName", "New apparel slot");
@@ -161,12 +173,105 @@ namespace WardrobeAttendant
 
         public string GetProtectionSummary()
         {
+            int signature = GetProtectionSummarySignature();
+
+            if (_protectionSummary == null ||
+                _protectionSummarySignature != signature)
+            {
+                _protectionSummarySignature = signature;
+                _protectionSummary = BuildProtectionSummary();
+            }
+
+            return _protectionSummary;
+        }
+
+        public string GetCorpseApparelSummary()
+        {
+            int signature = GetCorpseSummarySignature();
+
+            if (_corpseSummary == null ||
+                _corpseSummarySignature != signature)
+            {
+                _corpseSummarySignature = signature;
+                _corpseSummary = BuildCorpseSummary();
+            }
+
+            return _corpseSummary;
+        }
+
+        public string GetQualitySummary()
+        {
+            int signature = ((int)minQuality << 8) | (int)maxQuality;
+
+            if (_qualitySummary == null ||
+                _qualitySummarySignature != signature)
+            {
+                _qualitySummarySignature = signature;
+                _qualitySummary = BuildQualitySummary();
+            }
+
+            return _qualitySummary;
+        }
+
+        public string GetConditionSummary()
+        {
+            int signature = GetConditionSummarySignature();
+
+            if (_conditionSummary == null ||
+                _conditionSummarySignature != signature)
+            {
+                _conditionSummarySignature = signature;
+                _conditionSummary = BuildConditionSummary();
+            }
+
+            return _conditionSummary;
+        }
+
+        private int GetProtectionSummarySignature()
+        {
+            int signature = 0;
+
+            if (HasProtectionPriorities)
+            {
+                signature |= 1;
+            }
+
+            if (prioritizeCold)
+            {
+                signature |= 2;
+            }
+
+            if (prioritizeHeat)
+            {
+                signature |= 4;
+            }
+
+            if (prioritizeArmor)
+            {
+                signature |= 8;
+            }
+
+            if (prioritizeToxicity)
+            {
+                signature |= 16;
+            }
+
+            if (prioritizeVacuum)
+            {
+                signature |= 32;
+            }
+
+            return signature;
+        }
+
+        private string BuildProtectionSummary()
+        {
             if (!HasProtectionPriorities)
             {
                 return "WardrobeAttendant.Summary.ProtectionNone".Translate();
             }
 
-            var enabled = new List<string>();
+            var enabled = new List<string>(5);
 
             if (prioritizeCold)
             {
@@ -202,7 +307,24 @@ namespace WardrobeAttendant
                 string.Join(", ", enabled));
         }
 
-        public string GetCorpseApparelSummary()
+        private int GetCorpseSummarySignature()
+        {
+            int signature = 0;
+
+            if (allowCorpseApparel)
+            {
+                signature |= 1;
+            }
+
+            if (onlyCorpseApparel)
+            {
+                signature |= 2;
+            }
+
+            return signature;
+        }
+
+        private string BuildCorpseSummary()
         {
             if (!allowCorpseApparel)
             {
@@ -214,7 +336,7 @@ namespace WardrobeAttendant
                 : "WardrobeAttendant.Summary.CorpseApparelAllowed".Translate();
         }
 
-        public string GetQualitySummary()
+        private string BuildQualitySummary()
         {
             if (minQuality == QualityCategory.Awful &&
                 maxQuality == QualityCategory.Legendary)
@@ -230,7 +352,15 @@ namespace WardrobeAttendant
             return $"{minQuality.GetLabel().Translate()}–{maxQuality.GetLabel().Translate()}";
         }
 
-        public string GetConditionSummary()
+        private int GetConditionSummarySignature()
+        {
+            int signature = useDurabilityThreshold ? 1 : 0;
+
+            return signature |
+                   (Mathf.RoundToInt(durabilityThreshold * 100f) << 1);
+        }
+
+        private string BuildConditionSummary()
         {
             if (!useDurabilityThreshold)
             {

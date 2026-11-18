@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace WardrobeAttendant
 {
@@ -10,6 +11,15 @@ namespace WardrobeAttendant
         private readonly Pawn target;
         private readonly Listing_Standard _listing = new Listing_Standard();
         private Vector2 scrollPosition;
+
+        private readonly Dictionary<WardrobeSlot, WardrobeSummaryCache> _summaryCache =
+            new Dictionary<WardrobeSlot, WardrobeSummaryCache>();
+
+        private static readonly List<WardrobeSlot> EmptySlots =
+            new List<WardrobeSlot>();
+
+        private static readonly System.Text.StringBuilder SummaryBuilder =
+            new System.Text.StringBuilder(256);
 
         public WardrobeWindow(Pawn target)
         {
@@ -22,10 +32,19 @@ namespace WardrobeAttendant
             resizeable = true;
         }
 
-        private static readonly List<WardrobeSlot> EmptySlots =
-            new List<WardrobeSlot>();
-
         public override Vector2 InitialSize => new Vector2(800f, 600f);
+
+        public override void PostOpen()
+        {
+            base.PostOpen();
+            ApplySavedPlacement();
+        }
+
+        public override void PostClose()
+        {
+            SavePlacement();
+            base.PostClose();
+        }
 
         public override void DoWindowContents(Rect inRect)
         {
@@ -102,6 +121,12 @@ namespace WardrobeAttendant
 
                 slot.slotName = Widgets.TextField(nameRect, slot.slotName);
 
+                if (!string.IsNullOrEmpty(slot.slotName) &&
+                    slot.slotName.Length > 10)
+                {
+                    TooltipHandler.TipRegion(nameRect, slot.slotName);
+                }
+
                 string modeLabel = slot.mode == WardrobeSlotMode.FullOutfit
                     ? "WardrobeAttendant.Summary.FullOutfit".Translate()
                     : "WardrobeAttendant.Slot.ModeExactItem".Translate();
@@ -112,6 +137,8 @@ namespace WardrobeAttendant
                         ? WardrobeSlotMode.ExactItem
                         : WardrobeSlotMode.FullOutfit;
 
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+
                     component.NotifySlotModeChanged(target, slot);
                 }
 
@@ -120,61 +147,101 @@ namespace WardrobeAttendant
                         ?? "WardrobeAttendant.Slot.None".Translate()
                     : "WardrobeAttendant.Summary.FullOutfit".Translate();
 
-                string summary =
-                    apparelLabel +
-                    "   |   " +
-                    "WardrobeAttendant.Summary.Quality".Translate(slot.GetQualitySummary()) +
-                    "   |   " +
-                    "WardrobeAttendant.Summary.Condition".Translate(slot.GetConditionSummary());
+                SummaryBuilder.Length = 0;
+
+                SummaryBuilder.Append(apparelLabel);
+                SummaryBuilder.Append("   |   ");
+                SummaryBuilder.Append(
+                    "WardrobeAttendant.Summary.Quality".Translate(
+                        slot.GetQualitySummary()));
+                SummaryBuilder.Append("   |   ");
+                SummaryBuilder.Append(
+                    "WardrobeAttendant.Summary.Condition".Translate(
+                        slot.GetConditionSummary()));
 
                 if (slot.lockApparel)
                 {
-                    summary += "   |   " +
-                        "WardrobeAttendant.Summary.Locked".Translate();
+                    SummaryBuilder.Append("   |   ");
+                    SummaryBuilder.Append(
+                        "WardrobeAttendant.Summary.Locked".Translate());
                 }
 
                 if (slot.removeAtDurabilityThreshold)
                 {
-                    summary += "   |   " +
-                        "WardrobeAttendant.Summary.RemoveAtThreshold".Translate();
+                    SummaryBuilder.Append("   |   ");
+                    SummaryBuilder.Append(
+                        "WardrobeAttendant.Summary.RemoveAtThreshold".Translate());
                 }
 
                 if (slot.useDurabilityThreshold)
                 {
-                    summary += "   |   " +
-                        (slot.allowEarlyReplacement
+                    SummaryBuilder.Append("   |   ");
+                    SummaryBuilder.Append(
+                        slot.allowEarlyReplacement
                             ? "WardrobeAttendant.Summary.EarlyReplacement".Translate()
                             : "WardrobeAttendant.Summary.NoEarlyReplacement".Translate());
                 }
 
                 if (target.IsColonist || target.IsSlaveOfColony)
                 {
-                    summary += "   |   " +
-                        (slot.allowSelfService
+                    SummaryBuilder.Append("   |   ");
+                    SummaryBuilder.Append(
+                        slot.allowSelfService
                             ? "WardrobeAttendant.Summary.SelfService".Translate()
                             : "WardrobeAttendant.Summary.NoSelfService".Translate());
                 }
 
                 if (slot.lockApparel)
                 {
-                    summary += "   |   " +
-                        (slot.allowWorkerRemoveLocked
+                    SummaryBuilder.Append("   |   ");
+                    SummaryBuilder.Append(
+                        slot.allowWorkerRemoveLocked
                             ? "WardrobeAttendant.Summary.WorkerCanRemoveLocked".Translate()
                             : "WardrobeAttendant.Summary.WorkerCannotRemoveLocked".Translate());
                 }
 
-                summary += "   |   " +
-                    slot.GetProtectionSummary();
+                SummaryBuilder.Append("   |   ");
+                SummaryBuilder.Append(slot.GetProtectionSummary());
 
-                summary += "   |   " +
-                    slot.GetCorpseApparelSummary();
+                SummaryBuilder.Append("   |   ");
+                SummaryBuilder.Append(slot.GetCorpseApparelSummary());
 
-                string displaySummary = summary;
+                string summary = SummaryBuilder.ToString();
+                WardrobeSummaryCache cache = GetOrCreateSummaryCache(slot);
 
-                if (Text.CalcSize(summary).x > apparelRect.width)
+                bool summaryChanged = !string.Equals(
+                    cache.Summary,
+                    summary,
+                    System.StringComparison.Ordinal);
+
+                bool widthChanged =
+                    !Mathf.Approximately(cache.DisplayWidth, apparelRect.width);
+
+                if (summaryChanged || widthChanged)
                 {
-                    displaySummary = summary.Truncate(apparelRect.width - 18f);
-                    displaySummary += "…";
+                    cache.Summary = summary;
+                    cache.DisplaySummary = null;
+                    cache.DisplayWidth = apparelRect.width;
+                }
+
+                string displaySummary = cache.DisplaySummary;
+
+                if (displaySummary == null)
+                {
+                    displaySummary = summary;
+
+                    if (Text.CalcSize(summary).x > apparelRect.width)
+                    {
+                        displaySummary = summary.Truncate(apparelRect.width - 18f);
+                        displaySummary += "…";
+                    }
+
+                    cache.DisplaySummary = displaySummary;
+                }
+
+                if (Mouse.IsOver(apparelRect))
+                {
+                    Widgets.DrawHighlight(apparelRect);
                 }
 
                 Widgets.Label(apparelRect, displaySummary);
@@ -187,9 +254,15 @@ namespace WardrobeAttendant
                 }
 
                 if (Widgets.ButtonText(removeRect,
-                        "WardrobeAttendant.Summary.Remove".Translate()))
+                    "WardrobeAttendant.Summary.Remove".Translate()))
                 {
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+
                     component.RemoveSlot(target, slot);
+                    _summaryCache.Remove(slot);
+
+                    WardrobeGearTabPatch.InvalidateAssignmentCache();
+
                     break;
                 }
 
@@ -201,9 +274,13 @@ namespace WardrobeAttendant
             listing.Gap(10f);
 
             if (listing.ButtonText(
-                    "WardrobeAttendant.Window.AddSlot".Translate()))
+                "WardrobeAttendant.Window.AddSlot".Translate()))
             {
+                SoundDefOf.Click.PlayOneShotOnCamera();
+
                 component.AddSlot(target);
+
+                WardrobeGearTabPatch.InvalidateAssignmentCache();
             }
 
             listing.Gap(6f);
@@ -211,17 +288,79 @@ namespace WardrobeAttendant
             if (listing.ButtonText(
                     "WardrobeAttendant.Window.Close".Translate()))
             {
+                SavePlacement();
                 Close();
             }
 
             listing.End();
         }
 
+        private void ApplySavedPlacement()
+        {
+            var settings = WardrobeModSettingsExtensions.GetSettings();
+
+            if (settings == null ||
+                settings.WardrobeWindowWidth < 200f ||
+                settings.WardrobeWindowHeight < 150f)
+            {
+                return;
+            }
+
+            float x = Mathf.Clamp(
+                settings.WardrobeWindowX,
+                0f,
+                Mathf.Max(0f, UI.screenWidth - settings.WardrobeWindowWidth));
+
+            float y = Mathf.Clamp(
+                settings.WardrobeWindowY,
+                0f,
+                Mathf.Max(0f, UI.screenHeight - settings.WardrobeWindowHeight));
+
+            windowRect = new Rect(
+                x,
+                y,
+                settings.WardrobeWindowWidth,
+                settings.WardrobeWindowHeight);
+        }
+
+        private void SavePlacement()
+        {
+            var settings = WardrobeModSettingsExtensions.GetSettings();
+
+            if (settings == null || windowRect.width <= 0f)
+            {
+                return;
+            }
+
+            settings.WardrobeWindowX = windowRect.x;
+            settings.WardrobeWindowY = windowRect.y;
+            settings.WardrobeWindowWidth = windowRect.width;
+            settings.WardrobeWindowHeight = windowRect.height;
+
+            WardrobeModSettingsExtensions.SaveSettings();
+        }
+
+        private WardrobeSummaryCache GetOrCreateSummaryCache(WardrobeSlot slot)
+        {
+            if (!_summaryCache.TryGetValue(slot, out var cache))
+            {
+                cache = new WardrobeSummaryCache();
+                _summaryCache[slot] = cache;
+            }
+
+            return cache;
+        }
+
         private bool IsTargetValid()
         {
             return WardrobeTargetUtility.CanConfigureWardrobe(target);
         }
+
+        private sealed class WardrobeSummaryCache
+        {
+            public string Summary;
+            public string DisplaySummary;
+            public float DisplayWidth;
+        }
     }
 }
-
-

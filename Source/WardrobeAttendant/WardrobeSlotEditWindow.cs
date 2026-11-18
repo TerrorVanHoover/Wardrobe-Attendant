@@ -10,6 +10,9 @@ namespace WardrobeAttendant
 {
     public class WardrobeSlotEditWindow : Window
     {
+        private const float ExactApparelListMaxHeight = 300f;
+        private const float ExactApparelListRowHeight = 30f;
+
         private readonly WardrobeSlot slot;
         private readonly Pawn target;
 
@@ -22,6 +25,9 @@ namespace WardrobeAttendant
         private readonly Listing_Standard _listing = new Listing_Standard();
         private string searchText = "";
         private Vector2 scrollPosition;
+        private Vector2 outerScrollPosition;
+
+        private float _contentHeight = 900f;
 
         private static readonly QualityCategory[] QualityOrder =
             Enum.GetValues(typeof(QualityCategory))
@@ -42,11 +48,42 @@ namespace WardrobeAttendant
 
         public override Vector2 InitialSize => new Vector2(640f, 780f);
 
+        public override void PostOpen()
+        {
+            base.PostOpen();
+            ApplySavedPlacement();
+        }
+
+        public override void PostClose()
+        {
+            SavePlacement();
+            base.PostClose();
+        }
+
         public override void DoWindowContents(Rect inRect)
         {
+            float outerViewHeight = Mathf.Max(inRect.height, _contentHeight);
+
+            var outerViewRect = new Rect(
+                0f,
+                0f,
+                inRect.width - 20f,
+                outerViewHeight);
+
+            Rect outerScrollRect = new Rect(
+                inRect.x,
+                inRect.y + 7f,
+                inRect.width,
+                inRect.height - 7f);
+
+            Widgets.BeginScrollView(
+                outerScrollRect,
+                ref outerScrollPosition,
+                outerViewRect);
+
             Listing_Standard listing = _listing;
 
-            listing.Begin(inRect);
+            listing.Begin(outerViewRect);
 
             listing.Label(
                 "WardrobeAttendant.Slot.EditTitle".Translate(slot.slotName));
@@ -75,16 +112,12 @@ namespace WardrobeAttendant
 
             listing.CheckboxLabeled(
                 "WardrobeAttendant.Slot.LockApparel".Translate(),
-                ref lockApparel);
-
-            slot.lockApparel = lockApparel;
-
-            listing.Gap(4f);
-
-            listing.Label(
+                ref lockApparel,
                 slot.lockApparel
                     ? "WardrobeAttendant.Slot.LockedDesc".Translate()
                     : "WardrobeAttendant.Slot.UnlockedDesc".Translate());
+
+            slot.lockApparel = lockApparel;
 
             if (slot.lockApparel)
             {
@@ -136,12 +169,10 @@ namespace WardrobeAttendant
 
                 listing.CheckboxLabeled(
                     "WardrobeAttendant.Slot.RemoveAtThreshold".Translate(),
-                    ref removeAtThreshold);
+                    ref removeAtThreshold,
+                    "WardrobeAttendant.Slot.RemoveAtThresholdDesc".Translate());
 
                 slot.removeAtDurabilityThreshold = removeAtThreshold;
-
-                listing.Label(
-                    "WardrobeAttendant.Slot.RemoveAtThresholdDesc".Translate());
             }
 
             listing.Gap(14f);
@@ -150,7 +181,8 @@ namespace WardrobeAttendant
 
             listing.CheckboxLabeled(
                 "WardrobeAttendant.Slot.UseProtectionPriorities".Translate(),
-                ref useProtectionPriorities);
+                ref useProtectionPriorities,
+                "WardrobeAttendant.Slot.UseProtectionPrioritiesDesc".Translate());
 
             slot.useProtectionPriorities = useProtectionPriorities;
 
@@ -265,9 +297,25 @@ namespace WardrobeAttendant
 
             if (listing.ButtonText(modeLabel))
             {
-                slot.mode = slot.mode == WardrobeSlotMode.FullOutfit
+                bool switchingToExactItem =
+                    slot.mode == WardrobeSlotMode.FullOutfit;
+
+                slot.mode = switchingToExactItem
                     ? WardrobeSlotMode.ExactItem
                     : WardrobeSlotMode.FullOutfit;
+
+                SoundDefOf.Click.PlayOneShotOnCamera();
+
+                if (switchingToExactItem)
+                {
+                    _contentHeight += ExactApparelListMaxHeight;
+                }
+                else
+                {
+                    _contentHeight = Mathf.Max(
+                        inRect.height,
+                        _contentHeight - ExactApparelListMaxHeight);
+                }
 
                 WardrobeGameComponent
                     .Get?
@@ -279,11 +327,6 @@ namespace WardrobeAttendant
             if (slot.mode == WardrobeSlotMode.ExactItem)
             {
                 listing.Label(
-                    "WardrobeAttendant.Slot.ChooseExact".Translate());
-
-                listing.Gap(4f);
-
-                listing.Label(
                     "WardrobeAttendant.Slot.Selected".Translate(
                         slot.exactApparelDef?.LabelCap.RawText
                         ?? "WardrobeAttendant.Slot.None".Translate()));
@@ -293,9 +336,13 @@ namespace WardrobeAttendant
                 searchText = listing.TextEntry(searchText);
                 listing.Gap(4f);
 
-                float listHeight = Mathf.Max(
+                float availableHeight =
+                    outerViewRect.height - listing.CurHeight - 50f;
+
+                float listHeight = Mathf.Clamp(
+                    availableHeight,
                     60f,
-                    inRect.height - listing.CurHeight - 50f);
+                    ExactApparelListMaxHeight);
 
                 Rect listRect = listing.GetRect(listHeight);
 
@@ -307,13 +354,11 @@ namespace WardrobeAttendant
 
                 List<ThingDef> apparelDefs = _cachedApparelDefs;
 
-                float rowHeight = 30f;
-
                 var viewRect = new Rect(
                     0f,
                     0f,
                     listRect.width - 20f,
-                    apparelDefs.Count * rowHeight);
+                    apparelDefs.Count * ExactApparelListRowHeight);
 
                 Widgets.BeginScrollView(listRect, ref scrollPosition, viewRect);
 
@@ -323,7 +368,11 @@ namespace WardrobeAttendant
                 {
                     ThingDef def = apparelDefs[i];
 
-                    Rect rowRect = new Rect(0f, y, viewRect.width, rowHeight);
+                    Rect rowRect = new Rect(
+                        0f,
+                        y,
+                        viewRect.width,
+                        ExactApparelListRowHeight);
 
                     if (Widgets.ButtonText(rowRect, def.LabelCap))
                     {
@@ -338,7 +387,7 @@ namespace WardrobeAttendant
                         break;
                     }
 
-                    y += rowHeight;
+                    y += ExactApparelListRowHeight;
                 }
 
                 Widgets.EndScrollView();
@@ -349,10 +398,71 @@ namespace WardrobeAttendant
             if (listing.ButtonText(
                     "WardrobeAttendant.Slot.Close".Translate()))
             {
+                SavePlacement();
                 Close();
             }
 
+            float measuredContentHeight = listing.CurHeight + 16f;
+
+            if (slot.mode == WardrobeSlotMode.ExactItem)
+            {
+                _contentHeight = Mathf.Max(
+                    _contentHeight,
+                    measuredContentHeight);
+            }
+            else
+            {
+                _contentHeight = measuredContentHeight;
+            }
+
             listing.End();
+
+            Widgets.EndScrollView();
+        }
+
+        private void ApplySavedPlacement()
+        {
+            var settings = WardrobeModSettingsExtensions.GetSettings();
+
+            if (settings == null ||
+                settings.SlotEditWindowWidth < 300f ||
+                settings.SlotEditWindowHeight < 300f)
+            {
+                return;
+            }
+
+            float x = Mathf.Clamp(
+                settings.SlotEditWindowX,
+                0f,
+                Mathf.Max(0f, UI.screenWidth - settings.SlotEditWindowWidth));
+
+            float y = Mathf.Clamp(
+                settings.SlotEditWindowY,
+                0f,
+                Mathf.Max(0f, UI.screenHeight - settings.SlotEditWindowHeight));
+
+            windowRect = new Rect(
+                x,
+                y,
+                settings.SlotEditWindowWidth,
+                settings.SlotEditWindowHeight);
+        }
+
+        private void SavePlacement()
+        {
+            var settings = WardrobeModSettingsExtensions.GetSettings();
+
+            if (settings == null || windowRect.width <= 0f)
+            {
+                return;
+            }
+
+            settings.SlotEditWindowX = windowRect.x;
+            settings.SlotEditWindowY = windowRect.y;
+            settings.SlotEditWindowWidth = windowRect.width;
+            settings.SlotEditWindowHeight = windowRect.height;
+
+            WardrobeModSettingsExtensions.SaveSettings();
         }
 
         private void RebuildApparelDefCache(Pawn target, string search)

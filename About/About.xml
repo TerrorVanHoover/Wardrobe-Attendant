@@ -40,6 +40,14 @@
 		- Apparel is selected using quality, condition and actual armor ratings.
 		- Configure protection priorities for Full outfit and Exact item rules: cold protection, heat protection, armor, toxicity protection and vacuum protection.
 		- When protection priorities are enabled, apparel is selected using the selected protection weights; quality, condition and market value are not used.
+		- Protection priorities give increased weight to vacuum protection and toxicity protection.
+		- The slot editor uses tooltips for detailed setting descriptions and supports vertical scrolling when its contents exceed the window height.
+		- The exact apparel selector displays up to ten items at once and scrolls for longer lists.
+		- Wardrobe slot summaries highlight on hover, and long slot names show a full-name tooltip.
+		- Checkboxes highlight and slightly enlarge on hover.
+		- Wardrobe and slot editor windows remember their size and position during the current session and after saving and loading. Their placement can be reset from mod settings.
+		- The Wardrobe button is drawn in an isolated UI group at the top-right of the Gear tab and caches its active-assignment check.
+		- Wardrobe slot summaries are cached and rebuilt only when their relevant settings change.
 		- When no protection priority is enabled, apparel is selected using quality, condition and market value.
 		- Optionally allow corpse-worn apparel, optionally restrict a rule to corpse-worn apparel only, while always respecting the pawn's vanilla apparel policy. Corpse-worn apparel settings apply independently to each apparel rule.
 		- A slot restricted to corpse-worn apparel replaces or removes currently worn non-corpse apparel when a suitable corpse-worn replacement is or is not available.

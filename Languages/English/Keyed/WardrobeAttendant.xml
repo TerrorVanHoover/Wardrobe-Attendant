@@ -81,5 +81,11 @@
 	<WardrobeAttendant.Summary.NoSelfService>No self-service</WardrobeAttendant.Summary.NoSelfService>
 	<WardrobeAttendant.Summary.WorkerCanRemoveLocked>Worker may remove locked</WardrobeAttendant.Summary.WorkerCanRemoveLocked>
 	<WardrobeAttendant.Summary.WorkerCannotRemoveLocked>Worker cannot remove locked</WardrobeAttendant.Summary.WorkerCannotRemoveLocked>
+	
+	<WardrobeAttendant.Slot.UseProtectionPrioritiesDesc>Vacuum protection and toxicity protection receive increased priority.</WardrobeAttendant.Slot.UseProtectionPrioritiesDesc>
+
+	<WardrobeAttendant.Settings.ResetWindowPositions>Reset all mod window positions</WardrobeAttendant.Settings.ResetWindowPositions>
+	<WardrobeAttendant.Settings.ResetWindowPositionsDesc>Restores the default size and position of Wardrobe Attendant windows. Windows will use the default placement until they are moved and closed again.</WardrobeAttendant.Settings.ResetWindowPositionsDesc>
+	<WardrobeAttendant.Settings.WindowPositionsReset>The position and size of all mod windows have been reset.</WardrobeAttendant.Settings.WindowPositionsReset>
 
 </LanguageData>
