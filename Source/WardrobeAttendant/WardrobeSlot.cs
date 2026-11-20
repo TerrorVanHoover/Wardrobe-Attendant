@@ -139,6 +139,34 @@ namespace WardrobeAttendant
                    exactApparelDef.apparel?.layers?.Contains(layer) == true;
         }
 
+        public bool IsExactDefWearable(Pawn pawn)
+        {
+            if (mode != WardrobeSlotMode.ExactItem)
+            {
+                return true;
+            }
+
+            ThingDef apparelDef = exactApparelDef;
+
+            if (apparelDef == null ||
+                !apparelDef.IsApparel ||
+                apparelDef.apparel == null)
+            {
+                return false;
+            }
+
+            if (pawn == null ||
+                pawn.Destroyed ||
+                pawn.Dead ||
+                pawn.apparel == null)
+            {
+                return false;
+            }
+
+            return ApparelUtility.HasPartsToWear(pawn, apparelDef) &&
+                   apparelDef.apparel.PawnCanWear(pawn);
+        }
+
         public bool HasProtectionPriorities =>
             useProtectionPriorities &&
             (prioritizeCold ||

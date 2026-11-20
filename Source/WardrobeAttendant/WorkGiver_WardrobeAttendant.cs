@@ -61,6 +61,11 @@ namespace WardrobeAttendant
 
         private static int ExactCandidateCacheTick = -1;
 
+        private static readonly Dictionary<(int PawnId, int ApparelDefHash), bool> ExactDefWearabilityCache =
+            new Dictionary<(int PawnId, int ApparelDefHash), bool>();
+
+        private static int ExactDefWearabilityCacheTick = -1;
+
         public override ThingRequest PotentialWorkThingRequest =>
             ThingRequest.ForGroup(ThingRequestGroup.Pawn);
 
@@ -311,6 +316,8 @@ namespace WardrobeAttendant
             JobResultCache.Clear();
             ExactCandidateCache.Clear();
             ExactCandidateCacheTick = -1;
+            ExactDefWearabilityCache.Clear();
+            ExactDefWearabilityCacheTick = -1;
             ApparelScoreCache.Clear();
             ApparelScoreCacheTick = -1;
 
@@ -321,6 +328,37 @@ namespace WardrobeAttendant
         {
             ExactCandidateCache.Clear();
             ExactCandidateCacheTick = -1;
+        }
+
+        private static bool IsExactSlotWearable(Pawn target, WardrobeSlot slot)
+        {
+            if (target == null ||
+                slot == null ||
+                slot.mode != WardrobeSlotMode.ExactItem ||
+                slot.exactApparelDef == null)
+            {
+                return false;
+            }
+
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+
+            if (ExactDefWearabilityCacheTick != currentTick)
+            {
+                ExactDefWearabilityCache.Clear();
+                ExactDefWearabilityCacheTick = currentTick;
+            }
+
+            var cacheKey = (target.thingIDNumber, slot.exactApparelDef.shortHash);
+
+            if (ExactDefWearabilityCache.TryGetValue(cacheKey, out bool wearable))
+            {
+                return wearable;
+            }
+
+            wearable = slot.IsExactDefWearable(target);
+            ExactDefWearabilityCache[cacheKey] = wearable;
+
+            return wearable;
         }
 
         private static Job FindJobFor(
@@ -436,6 +474,11 @@ namespace WardrobeAttendant
                 var slot = slots[i];
 
                 if (!slot.enabled || slot.mode != WardrobeSlotMode.ExactItem)
+                {
+                    continue;
+                }
+
+                if (!IsExactSlotWearable(target, slot))
                 {
                     continue;
                 }
@@ -695,6 +738,12 @@ namespace WardrobeAttendant
                 return null;
             }
 
+            if (slot.mode == WardrobeSlotMode.ExactItem &&
+                !IsExactSlotWearable(target, slot))
+            {
+                return null;
+            }
+
             Job job = null;
 
             for (int i = 0; i < wornApparel.Count; i++)
@@ -883,6 +932,8 @@ namespace WardrobeAttendant
                 if (slot == null ||
                     !slot.enabled ||
                     !slot.removeAtDurabilityThreshold ||
+                    (slot.mode == WardrobeSlotMode.ExactItem &&
+                     !IsExactSlotWearable(target, slot)) ||
                     !IsRemovalCandidate(apparel, slot))
                 {
                     continue;
@@ -1733,6 +1784,7 @@ namespace WardrobeAttendant
                     !slot.enabled ||
                     slot.mode != WardrobeSlotMode.ExactItem ||
                     slot.exactApparelDef?.apparel == null ||
+                    !IsExactSlotWearable(target, slot) ||
                     result.Contains(slot.exactApparelDef))
                 {
                     continue;
@@ -1996,20 +2048,24 @@ namespace WardrobeAttendant
             {
                 var slot = slots[i];
 
-                if (slot.enabled &&
-                    slot.mode == WardrobeSlotMode.ExactItem &&
-                    slot.exactApparelDef != null)
+                if (slot == null ||
+                    !slot.enabled ||
+                    slot.mode != WardrobeSlotMode.ExactItem ||
+                    slot.exactApparelDef == null ||
+                    !IsExactSlotWearable(target, slot))
                 {
-                    result.Add(slot.exactApparelDef);
+                    continue;
                 }
+
+                result.Add(slot.exactApparelDef);
             }
 
             return result;
         }
 
         private static bool IsRemovalCandidate(
-    Apparel apparel,
-    WardrobeSlot slot)
+            Apparel apparel,
+            WardrobeSlot slot)
         {
             if (apparel == null || slot == null)
             {

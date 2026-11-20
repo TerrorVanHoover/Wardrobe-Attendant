@@ -15,6 +15,11 @@ namespace WardrobeAttendant
         private readonly Dictionary<WardrobeSlot, WardrobeSummaryCache> _summaryCache =
             new Dictionary<WardrobeSlot, WardrobeSummaryCache>();
 
+        private static Texture2D SlotWarningIcon =>
+            ContentFinder<Texture2D>.Get(
+            "UI/WardrobeAttendant_SlotWarning",
+            false);
+
         private static readonly List<WardrobeSlot> EmptySlots =
             new List<WardrobeSlot>();
 
@@ -99,9 +104,10 @@ namespace WardrobeAttendant
                 }
 
                 Rect enabledRect = new Rect(0f, y + 8f, 28f, 28f);
-                Rect nameRect = new Rect(36f, y, 160f, rowHeight);
-                Rect modeRect = new Rect(204f, y, 160f, rowHeight);
-                Rect apparelRect = new Rect(372f, y, viewRect.width - 546f, rowHeight);
+                Rect warningRect = new Rect(32f, y + 9f, 20f, 20f);
+                Rect nameRect = new Rect(56f, y, 150f, rowHeight);
+                Rect modeRect = new Rect(210f, y, 150f, rowHeight);
+                Rect apparelRect = new Rect(364f, y, viewRect.width - 538f, rowHeight);
                 Rect editRect = new Rect(viewRect.width - 168f, y + 5f, 82f, 28f);
                 Rect removeRect = new Rect(viewRect.width - 80f, y + 5f, 74f, 28f);
 
@@ -117,6 +123,26 @@ namespace WardrobeAttendant
                 if (enabled && !wasEnabled)
                 {
                     component.NotifySlotEnabled(target, slot);
+                }
+
+                bool showUnwearableWarning =
+                    slot.enabled &&
+                    slot.mode == WardrobeSlotMode.ExactItem &&
+                    slot.exactApparelDef != null &&
+                    !slot.IsExactDefWearable(target);
+
+                if (showUnwearableWarning)
+                {
+                    Texture2D warningIcon = SlotWarningIcon;
+
+                    if (warningIcon != null)
+                    {
+                        Widgets.DrawTextureFitted(warningRect, warningIcon, 1f);
+                    }
+
+                    TooltipHandler.TipRegion(
+                        warningRect,
+                        "WardrobeAttendant.Slot.ExactDefUnwearable".Translate());
                 }
 
                 slot.slotName = Widgets.TextField(nameRect, slot.slotName);

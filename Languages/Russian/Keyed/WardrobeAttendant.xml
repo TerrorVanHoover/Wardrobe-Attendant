@@ -87,5 +87,7 @@
 	<WardrobeAttendant.Settings.ResetWindowPositions>Сбросить положение всех окон мода</WardrobeAttendant.Settings.ResetWindowPositions>
 	<WardrobeAttendant.Settings.ResetWindowPositionsDesc>Восстанавливает размер и положение окон Wardrobe Attendant по умолчанию. Окна будут использовать стандартное размещение до следующего перемещения и закрытия.</WardrobeAttendant.Settings.ResetWindowPositionsDesc>
 	<WardrobeAttendant.Settings.WindowPositionsReset>Положение и размер всех окон мода сброшено.</WardrobeAttendant.Settings.WindowPositionsReset>
+	
+	<WardrobeAttendant.Slot.ExactDefUnwearable>Текущий слот считается невыполнимым и обслуживаться не будет: выбранная вещь не может быть надета этим колонистом.</WardrobeAttendant.Slot.ExactDefUnwearable>
 
 </LanguageData>

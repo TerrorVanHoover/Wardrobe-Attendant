@@ -5,6 +5,7 @@
 	<packageId>TerrorVanHoover.wardrobeattendant</packageId>
 	<supportedVersions>
 		<li>1.6</li>
+		<li>1.7</li>
 	</supportedVersions>
 	<description>
 		Assign colonists to continuously maintain the required apparel of colonists, slaves, prisoners and colony animals.
@@ -22,7 +23,7 @@
 		- Vanilla self-equipping is prevented from re-equipping apparel that Wardrobe Attendant recently displaced through early replacement.
 		- Vanilla self-equipping is prevented from selecting below-threshold apparel when a suitable replacement is available.
 		- Self-service uses a dedicated self-wear path and respects the same outfit policy, protection, durability, corpse and locked-apparel rules.
-		- Optionally lock suitable apparel after it is equipped by a Wardrobe Attendant job. The lock decision is bound to the apparel rule that issued the job: its current "lock after equipping" setting at the moment of equipping decides both the vanilla padlock and the forced-apparel entry; other rules do not affect it. Toggling the setting while a job is in progress correctly changes the outcome at the moment of equipping. Self-service now always drops conflicting apparel to the ground instead of removing it silently.
+		- Optionally mark suitable apparel as forced after it is equipped by a Wardrobe Attendant job. The player can still remove or replace it manually; Wardrobe Attendant workers respect the slot's locked-apparel removal setting. The lock decision is bound to the apparel rule that issued the job: its current "lock after equipping" setting at the moment of equipping decides both the vanilla padlock and the forced-apparel entry; other rules do not affect it. Toggling the setting while a job is in progress correctly changes the outcome at the moment of equipping. Self-service now always drops conflicting apparel to the ground instead of removing it silently.
 		- Optionally replace apparel after it falls below its durability threshold and a better permitted replacement is available.
 		- Optionally remove apparel after it falls below its durability threshold when no compatible replacement is available; a worker removes all eligible worn-out items in one visit, only after completing the removal work. Interrupting the work does not remove apparel.
 		- Exact apparel rules can replace their required apparel with a better item of the same apparel def after it falls below the durability threshold. The currently worn same-def item is treated as the replacement target, not as a conflicting item.
@@ -37,6 +38,7 @@
 		- Full outfit rules leave apparel defs assigned to enabled exact item rules to those exact item rules.
 		- Wardrobe configuration is available for colony prisoners even when they belong to another faction.
 		- Empty or invalid exact item rules are disabled on load and remain exact item rules; they never become full outfit rules automatically.
+		- Exact item rules whose selected apparel cannot be worn by the assigned pawn are marked as unfulfillable. They retain their configuration, display a warning icon, and are excluded from wardrobe servicing and apparel protection until the item becomes wearable again.
 		- Apparel is selected using quality, condition and actual armor ratings.
 		- Configure protection priorities for Full outfit and Exact item rules: cold protection, heat protection, armor, toxicity protection and vacuum protection.
 		- When protection priorities are enabled, apparel is selected using the selected protection weights; quality, condition and market value are not used.

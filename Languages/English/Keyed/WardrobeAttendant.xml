@@ -88,4 +88,6 @@
 	<WardrobeAttendant.Settings.ResetWindowPositionsDesc>Restores the default size and position of Wardrobe Attendant windows. Windows will use the default placement until they are moved and closed again.</WardrobeAttendant.Settings.ResetWindowPositionsDesc>
 	<WardrobeAttendant.Settings.WindowPositionsReset>The position and size of all mod windows have been reset.</WardrobeAttendant.Settings.WindowPositionsReset>
 
+	<WardrobeAttendant.Slot.ExactDefUnwearable>This slot is considered unfulfillable and will not be serviced: the selected item cannot be worn by this pawn.</WardrobeAttendant.Slot.ExactDefUnwearable>
+
 </LanguageData>
