@@ -295,6 +295,48 @@ namespace WardrobeAttendant
                 : null;
         }
 
+        public bool TryGetExistingSlots(Pawn pawn, out List<WardrobeSlot> slots)
+        {
+            slots = null;
+
+            if (pawn == null)
+            {
+                return false;
+            }
+
+            if (assignmentsByPawnId.TryGetValue(
+                    pawn.thingIDNumber,
+                    out var cached) &&
+                cached != null &&
+                cached.target == pawn)
+            {
+                slots = cached.slots;
+                return slots != null && slots.Count > 0;
+            }
+
+            if (assignments == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < assignments.Count; i++)
+            {
+                WardrobeAssignment candidate = assignments[i];
+
+                if (candidate == null || candidate.target != pawn)
+                {
+                    continue;
+                }
+
+                assignmentsByPawnId[pawn.thingIDNumber] = candidate;
+                slots = candidate.slots;
+
+                return slots != null && slots.Count > 0;
+            }
+
+            return false;
+        }
+
         public bool TryGetSlots(Pawn pawn, out List<WardrobeSlot> slots)
         {
             slots = null;
@@ -318,15 +360,15 @@ namespace WardrobeAttendant
                 return null;
             }
 
-            bool isFirstSlot = assignment.slots.Count == 0;
+            WardrobeSlotMode mode = HasActiveFullOutfit(assignment, null)
+                ? WardrobeSlotMode.ExactItem
+                : WardrobeSlotMode.FullOutfit;
 
             var slot = new WardrobeSlot
             {
                 slotName = "WardrobeAttendant.DefaultSlotName".Translate(
                     assignment.slots.Count + 1).ToString(),
-                mode = isFirstSlot
-                    ? WardrobeSlotMode.FullOutfit
-                    : WardrobeSlotMode.ExactItem,
+                mode = mode,
                 enabled = true
             };
 
