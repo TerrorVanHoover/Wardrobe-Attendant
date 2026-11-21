@@ -120,9 +120,14 @@ namespace WardrobeAttendant
 
                 slot.enabled = enabled;
 
-                if (enabled && !wasEnabled)
+                if (enabled != wasEnabled)
                 {
-                    component.NotifySlotEnabled(target, slot);
+                    WardrobeGearTabPatch.InvalidateAssignmentCache();
+
+                    if (enabled)
+                    {
+                        component.NotifySlotEnabled(target, slot);
+                    }
                 }
 
                 bool showUnwearableWarning =

@@ -96,63 +96,30 @@ namespace WardrobeAttendant
         }
 
         public static void Postfix(
-            Pawn_ApparelTracker __instance,
-            Apparel newApparel)
+    Pawn_ApparelTracker __instance,
+    Apparel newApparel)
         {
             try
             {
                 Pawn pawn = __instance?.pawn;
                 WardrobeGameComponent component = WardrobeGameComponent.Get;
 
-                if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                {
-                    Log.Message(
-                        $"[Wardrobe] Wear Postfix enter: " +
-                        $"pawn={pawn?.LabelShortCap ?? "null"}, " +
-                        $"apparel={newApparel?.def.defName ?? "null"}");
-                }
-
                 if (pawn == null ||
                     newApparel == null ||
                     component == null)
                 {
-                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                    {
-                        Log.Message(
-                            "[Wardrobe] Wear Postfix exit: missing pawn, apparel, or component.");
-                    }
-
                     return;
                 }
 
                 bool hasPendingLock =
                     component.TryGetLockPending(newApparel, out var pending);
 
-                if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                {
-                    Log.Message(
-                        $"[Wardrobe] Wear Postfix pending: " +
-                        $"found={hasPendingLock}, " +
-                        $"slot={pending?.slot?.slotName ?? "null"}, " +
-                        $"slotEnabled={pending?.slot?.enabled ?? false}, " +
-                        $"lockApparel={pending?.slot?.lockApparel ?? false}");
-                }
-
                 if (hasPendingLock)
                 {
                     component.ClearLockPending(newApparel);
                 }
 
-                bool isWorn =
-                    pawn.apparel?.WornApparel.Contains(newApparel) == true;
-
-                if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                {
-                    Log.Message(
-                        $"[Wardrobe] Wear Postfix worn={isWorn}");
-                }
-
-                if (!isWorn)
+                if (pawn.apparel?.WornApparel.Contains(newApparel) != true)
                 {
                     return;
                 }
@@ -165,30 +132,17 @@ namespace WardrobeAttendant
                     pendingSlot.enabled &&
                     pendingSlot.lockApparel)
                 {
-                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                    {
-                        Log.Message(
-                            "[Wardrobe] Wear Postfix applying forced lock from pending slot.");
-                    }
-
                     ApplyForcedLock(pawn, newApparel);
                     return;
                 }
 
-                if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+                // The transient pending record can expire before the pawn actually
+                // wears the apparel, or the pawn can equip it through vanilla logic
+                // while a Wardrobe Attendant job is still pending. Use only existing
+                // wardrobe assignments here: pawn generation creates many temporary
+                // pawns, and creating assignments for them would be expensive.
+                if (!component.TryGetExistingSlots(pawn, out var slots))
                 {
-                    Log.Message(
-                        "[Wardrobe] Wear Postfix pending lock not applicable; checking current slots.");
-                }
-
-                if (!component.TryGetSlots(pawn, out var slots))
-                {
-                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                    {
-                        Log.Message(
-                            "[Wardrobe] Wear Postfix exit: no wardrobe slots.");
-                    }
-
                     return;
                 }
 
@@ -207,32 +161,11 @@ namespace WardrobeAttendant
                         ? slot.exactApparelDef == newApparel.def
                         : slot.AllowsApparel(newApparel);
 
-                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                    {
-                        Log.Message(
-                            $"[Wardrobe] Wear Postfix slot check: " +
-                            $"slot={slot.slotName}, " +
-                            $"mode={slot.mode}, " +
-                            $"matches={slotMatches}");
-                    }
-
                     if (slotMatches)
                     {
-                        if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                        {
-                            Log.Message(
-                                "[Wardrobe] Wear Postfix applying forced lock from current slot.");
-                        }
-
                         ApplyForcedLock(pawn, newApparel);
                         return;
                     }
-                }
-
-                if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                {
-                    Log.Message(
-                        "[Wardrobe] Wear Postfix exit: no matching enabled lock slot.");
                 }
             }
             catch (Exception ex)
@@ -246,25 +179,10 @@ namespace WardrobeAttendant
         {
             if (pawn.outfits?.forcedHandler == null)
             {
-                if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-                {
-                    Log.Message(
-                        "[Wardrobe] ApplyForcedLock exit: forcedHandler is null.");
-                }
-
                 return;
             }
 
             pawn.outfits.forcedHandler.SetForced(apparel, true);
-
-            if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
-            {
-                Log.Message(
-                    $"[Wardrobe] ApplyForcedLock applied: " +
-                    $"pawn={pawn.LabelShortCap}, " +
-                    $"apparel={apparel.def.defName}, " +
-                    $"forced={pawn.outfits.forcedHandler.IsForced(apparel)}");
-            }
         }
     }
 }
