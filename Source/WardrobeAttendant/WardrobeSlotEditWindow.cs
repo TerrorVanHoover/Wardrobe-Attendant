@@ -509,12 +509,87 @@ namespace WardrobeAttendant
 
         private static bool CanTargetWearDef(ThingDef apparelDef, Pawn target)
         {
-            return apparelDef != null &&
-                   target != null &&
-                   apparelDef.IsApparel &&
-                   apparelDef.apparel != null &&
-                   ApparelUtility.HasPartsToWear(target, apparelDef) &&
-                   apparelDef.apparel.PawnCanWear(target);
+            if (apparelDef == null ||
+                target == null ||
+                !apparelDef.IsApparel ||
+                apparelDef.apparel == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                bool structural = target.RaceProps?.Humanlike == true
+                    ? CanPotentiallyWearDef(target, apparelDef)
+                    : ApparelUtility.HasPartsToWear(target, apparelDef);
+
+                return structural &&
+                       apparelDef.apparel.PawnCanWear(target);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(
+                    "Wardrobe Attendant: structural apparel compatibility check failed " +
+                    $"for target '{target.LabelShortCap}' and apparel '{apparelDef.defName}': {ex}");
+
+                return ApparelUtility.HasPartsToWear(target, apparelDef) &&
+                       apparelDef.apparel.PawnCanWear(target);
+            }
+        }
+
+        private static bool CanPotentiallyWearDef(Pawn target, ThingDef apparelDef)
+        {
+            if (target?.RaceProps?.body == null)
+            {
+                return false;
+            }
+
+            if (apparelDef?.apparel == null)
+            {
+                return false;
+            }
+
+            List<BodyPartGroupDef> requiredGroups = apparelDef.apparel.bodyPartGroups;
+
+            if (requiredGroups == null || requiredGroups.Count == 0)
+            {
+                return true;
+            }
+
+            List<BodyPartRecord> bodyParts = target.RaceProps.body.AllParts;
+
+            if (bodyParts == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < requiredGroups.Count; i++)
+            {
+                BodyPartGroupDef requiredGroup = requiredGroups[i];
+
+                if (requiredGroup == null)
+                {
+                    continue;
+                }
+
+                bool hasMatchingPart = false;
+
+                for (int j = 0; j < bodyParts.Count; j++)
+                {
+                    if (bodyParts[j]?.IsInGroup(requiredGroup) == true)
+                    {
+                        hasMatchingPart = true;
+                        break;
+                    }
+                }
+
+                if (!hasMatchingPart)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
