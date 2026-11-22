@@ -104,8 +104,10 @@ namespace WardrobeAttendant
                 }
 
                 Rect enabledRect = new Rect(0f, y + 8f, 28f, 28f);
-                Rect editRect = new Rect(viewRect.width - 168f, y + 5f, 82f, 28f);
-                Rect removeRect = new Rect(viewRect.width - 80f, y + 5f, 74f, 28f);
+                Rect moveUpRect = new Rect(viewRect.width - 216f, y + 8f, 22f, 22f);
+                Rect moveDownRect = new Rect(viewRect.width - 190f, y + 8f, 22f, 22f);
+                Rect editRect = new Rect(viewRect.width - 164f, y + 5f, 82f, 28f);
+                Rect removeRect = new Rect(viewRect.width - 78f, y + 5f, 74f, 28f);
 
                 bool showUnwearableWarning =
                     slot.enabled &&
@@ -301,6 +303,32 @@ namespace WardrobeAttendant
 
                 Widgets.Label(apparelRect, displaySummary);
                 TooltipHandler.TipRegion(apparelRect, summary);
+
+                if (i > 0)
+                {
+                    if (Widgets.ButtonImage(moveUpRect, TexButton.ReorderUp))
+                    {
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                        component.MoveSlot(target, slot, -1);
+                    }
+
+                    TooltipHandler.TipRegion(
+                        moveUpRect,
+                        "WardrobeAttendant.Slot.MoveUp".Translate());
+                }
+
+                if (i < slots.Count - 1)
+                {
+                    if (Widgets.ButtonImage(moveDownRect, TexButton.ReorderDown))
+                    {
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                        component.MoveSlot(target, slot, 1);
+                    }
+
+                    TooltipHandler.TipRegion(
+                        moveDownRect,
+                        "WardrobeAttendant.Slot.MoveDown".Translate());
+                }
 
                 if (Widgets.ButtonText(editRect,
                         "WardrobeAttendant.Summary.Edit".Translate()))

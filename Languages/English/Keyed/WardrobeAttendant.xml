@@ -89,6 +89,9 @@
 	<WardrobeAttendant.Settings.WindowPositionsReset>The position and size of all mod windows have been reset.</WardrobeAttendant.Settings.WindowPositionsReset>
 
 	<WardrobeAttendant.Slot.ExactDefUnwearable>This slot is considered unfulfillable and will not be serviced: the selected item cannot be worn by this pawn.</WardrobeAttendant.Slot.ExactDefUnwearable>
+
+	<WardrobeAttendant.Slot.MoveUp>Move slot up</WardrobeAttendant.Slot.MoveUp>
+	<WardrobeAttendant.Slot.MoveDown>Move slot down</WardrobeAttendant.Slot.MoveDown>
 	
 
 </LanguageData>

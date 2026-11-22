@@ -377,6 +377,66 @@ namespace WardrobeAttendant
             return slot;
         }
 
+        public void MoveSlot(Pawn pawn, WardrobeSlot slot, int direction)
+        {
+            if (pawn == null
+                || slot == null
+                || direction == 0
+                || !TryGetAssignment(pawn, out WardrobeAssignment assignment)
+                || assignment?.slots == null)
+            {
+                return;
+            }
+
+            List<WardrobeSlot> slots = assignment.slots;
+            int slotIndex = slots.IndexOf(slot);
+
+            if (slotIndex < 0)
+            {
+                return;
+            }
+
+            int targetIndex = slotIndex + direction;
+
+            if (targetIndex < 0 || targetIndex >= slots.Count)
+            {
+                return;
+            }
+
+            slots[slotIndex] = slots[targetIndex];
+            slots[targetIndex] = slot;
+
+            UpdateLockPendingSlotIndexes(pawn);
+        }
+
+        private void UpdateLockPendingSlotIndexes(Pawn pawn)
+        {
+            if (pawn == null || pendingLockApparelJobs.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var pair in pendingLockApparelJobs)
+            {
+                PendingWardrobeJob pending = pair.Value;
+
+                if (pending == null ||
+                    pending.target != pawn ||
+                    pending.slot == null)
+                {
+                    continue;
+                }
+
+                if (!TryGetSlots(pawn, out var slots))
+                {
+                    pending.slotIndex = -1;
+                    continue;
+                }
+
+                pending.slotIndex = slots.IndexOf(pending.slot);
+            }
+        }
+
         public void RemoveSlot(Pawn pawn, WardrobeSlot slot)
         {
             if (!TryGetAssignment(pawn, out var assignment) ||
