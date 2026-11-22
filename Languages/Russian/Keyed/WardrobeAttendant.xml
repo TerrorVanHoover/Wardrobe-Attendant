@@ -89,5 +89,6 @@
 	<WardrobeAttendant.Settings.WindowPositionsReset>Положение и размер всех окон мода сброшено.</WardrobeAttendant.Settings.WindowPositionsReset>
 	
 	<WardrobeAttendant.Slot.ExactDefUnwearable>Текущий слот считается невыполнимым и обслуживаться не будет: выбранная вещь не может быть надета этим колонистом.</WardrobeAttendant.Slot.ExactDefUnwearable>
+	
 
 </LanguageData>

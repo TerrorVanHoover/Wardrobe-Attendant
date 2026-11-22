@@ -12,6 +12,9 @@ namespace WardrobeAttendant
     {
         private const float ExactApparelListMaxHeight = 300f;
         private const float ExactApparelListRowHeight = 30f;
+        
+        private const float ExactApparelWarningIconSize = 18f;
+        private const float ExactApparelWarningIconGap = 4f;
 
         private readonly WardrobeSlot slot;
         private readonly Pawn target;
@@ -33,6 +36,11 @@ namespace WardrobeAttendant
             Enum.GetValues(typeof(QualityCategory))
                 .Cast<QualityCategory>()
                 .ToArray();
+
+        private static Texture2D SlotWarningIcon =>
+            ContentFinder<Texture2D>.Get(
+            "UI/WardrobeAttendant_SlotWarning",
+            false);
 
         public WardrobeSlotEditWindow(WardrobeSlot slot, Pawn target)
         {
@@ -374,7 +382,25 @@ namespace WardrobeAttendant
                         viewRect.width,
                         ExactApparelListRowHeight);
 
-                    if (Widgets.ButtonText(rowRect, def.LabelCap))
+                    bool currentlyUnwearable =
+                        IsCurrentlyUnwearable(def, target);
+
+                    float buttonWidth = rowRect.width;
+
+                    if (currentlyUnwearable)
+                    {
+                        buttonWidth -=
+                            ExactApparelWarningIconSize +
+                            ExactApparelWarningIconGap;
+                    }
+
+                    Rect buttonRect = new Rect(
+                        rowRect.x,
+                        rowRect.y,
+                        buttonWidth,
+                        rowRect.height);
+
+                    if (Widgets.ButtonText(buttonRect, def.LabelCap))
                     {
                         slot.exactApparelDef = def;
 
@@ -384,7 +410,32 @@ namespace WardrobeAttendant
 
                         SoundDefOf.Click.PlayOneShotOnCamera();
 
+                        if (currentlyUnwearable)
+                        {
+                            Find.WindowStack.Add(
+                                new UnwearableApparelDialog(
+                                    "WardrobeAttendant.Slot.ExactDefUnwearable".Translate()));
+                        }
+
                         break;
+                    }
+
+                    if (currentlyUnwearable)
+                    {
+                        Rect warningRect = new Rect(
+                            rowRect.x + buttonWidth + ExactApparelWarningIconGap,
+                            rowRect.y + (rowRect.height - ExactApparelWarningIconSize) / 2f,
+                            ExactApparelWarningIconSize,
+                            ExactApparelWarningIconSize);
+
+                        Widgets.DrawTextureFitted(
+                            warningRect,
+                            SlotWarningIcon,
+                            1f);
+
+                        TooltipHandler.TipRegion(
+                            warningRect,
+                            "WardrobeAttendant.Slot.ExactDefUnwearable".Translate());
                     }
 
                     y += ExactApparelListRowHeight;
@@ -537,6 +588,32 @@ namespace WardrobeAttendant
             }
         }
 
+        private static bool IsCurrentlyUnwearable(
+    ThingDef apparelDef,
+    Pawn target)
+        {
+            if (apparelDef == null ||
+                target == null ||
+                target.RaceProps?.Humanlike != true)
+            {
+                return false;
+            }
+
+            try
+            {
+                return !ApparelUtility.HasPartsToWear(target, apparelDef);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(
+                    "Wardrobe Attendant: current apparel wearability check failed " +
+                    $"for target '{target.LabelShortCap}' and apparel " +
+                    $"'{apparelDef.defName}': {ex}");
+
+                return false;
+            }
+        }
+
         private static bool CanPotentiallyWearDef(Pawn target, ThingDef apparelDef)
         {
             if (target?.RaceProps?.body == null)
@@ -590,6 +667,37 @@ namespace WardrobeAttendant
             }
 
             return true;
+        }
+
+        private class UnwearableApparelDialog : Window
+        {
+            private readonly string message;
+
+            public UnwearableApparelDialog(string message)
+            {
+                this.message = message;
+
+                doCloseX = true;
+                forcePause = false;
+                absorbInputAroundWindow = false;
+                closeOnClickedOutside = true;
+                draggable = false;
+                resizeable = false;
+            }
+
+            public override Vector2 InitialSize =>
+                new Vector2(420f, 170f);
+
+            public override void DoWindowContents(Rect inRect)
+            {
+                var messageRect = new Rect(
+                    0f,
+                    0f,
+                    inRect.width,
+                    inRect.height - 30f);
+
+                Widgets.Label(messageRect, message);
+            }
         }
     }
 }
