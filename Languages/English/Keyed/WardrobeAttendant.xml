@@ -90,8 +90,7 @@
 
 	<WardrobeAttendant.Slot.ExactDefUnwearable>This slot is considered unfulfillable and will not be serviced: the selected item cannot be worn by this pawn.</WardrobeAttendant.Slot.ExactDefUnwearable>
 
-	<WardrobeAttendant.Slot.MoveUp>Move slot up</WardrobeAttendant.Slot.MoveUp>
-	<WardrobeAttendant.Slot.MoveDown>Move slot down</WardrobeAttendant.Slot.MoveDown>
+	<WardrobeAttendant.Slot.ServiceOrderInfo>Servicing order: top to bottom. Exact item rules take priority over full outfit rules.</WardrobeAttendant.Slot.ServiceOrderInfo>
 	
 
 </LanguageData>

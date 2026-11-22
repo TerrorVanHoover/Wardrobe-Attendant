@@ -104,8 +104,8 @@ namespace WardrobeAttendant
                 }
 
                 Rect enabledRect = new Rect(0f, y + 8f, 28f, 28f);
-                Rect moveUpRect = new Rect(viewRect.width - 216f, y + 8f, 22f, 22f);
-                Rect moveDownRect = new Rect(viewRect.width - 190f, y + 8f, 22f, 22f);
+                Rect moveUpRect = new Rect(viewRect.width - 189f, y + 2f, 22f, 16f);
+                Rect moveDownRect = new Rect(viewRect.width - 189f, y + 20f, 22f, 16f);
                 Rect editRect = new Rect(viewRect.width - 164f, y + 5f, 82f, 28f);
                 Rect removeRect = new Rect(viewRect.width - 78f, y + 5f, 74f, 28f);
 
@@ -128,9 +128,9 @@ namespace WardrobeAttendant
                     nameRect = new Rect(36f, y, 140f, rowHeight);
                     modeRect = new Rect(204f, y, 160f, rowHeight);
                     apparelRect = new Rect(
-                        372f,
+                        368f,
                         y,
-                        viewRect.width - 546f,
+                        viewRect.width - 562f,
                         rowHeight);
                 }
                 else
@@ -139,9 +139,9 @@ namespace WardrobeAttendant
                     nameRect = new Rect(36f, y, 160f, rowHeight);
                     modeRect = new Rect(204f, y, 160f, rowHeight);
                     apparelRect = new Rect(
-                        372f,
+                        368f,
                         y,
-                        viewRect.width - 546f,
+                        viewRect.width - 562f,
                         rowHeight);
                 }
 
@@ -281,16 +281,17 @@ namespace WardrobeAttendant
                     cache.DisplayWidth = apparelRect.width;
                 }
 
+                Rect summaryTextRect = apparelRect.ContractedBy(2f, 0f);
+
                 string displaySummary = cache.DisplaySummary;
 
                 if (displaySummary == null)
                 {
                     displaySummary = summary;
 
-                    if (Text.CalcSize(summary).x > apparelRect.width)
+                    if (Text.CalcSize(summary).x > summaryTextRect.width)
                     {
-                        displaySummary = summary.Truncate(apparelRect.width - 18f);
-                        displaySummary += "…";
+                        displaySummary = summary.Truncate(summaryTextRect.width);
                     }
 
                     cache.DisplaySummary = displaySummary;
@@ -301,33 +302,53 @@ namespace WardrobeAttendant
                     Widgets.DrawHighlight(apparelRect);
                 }
 
-                Widgets.Label(apparelRect, displaySummary);
+                TextAnchor previousSummaryAnchor = Text.Anchor;
+
+                Text.Anchor = TextAnchor.MiddleLeft;
+
+                Widgets.Label(summaryTextRect, displaySummary);
+
+                Text.Anchor = previousSummaryAnchor;
+
                 TooltipHandler.TipRegion(apparelRect, summary);
 
-                if (i > 0)
+                bool isFirstSlot = i == 0;
+                bool isLastSlot = i == slots.Count - 1;
+
+                if (!isFirstSlot)
                 {
                     if (Widgets.ButtonImage(moveUpRect, TexButton.ReorderUp))
                     {
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         component.MoveSlot(target, slot, -1);
                     }
+                }
+                else if (isLastSlot)
+                {
+                    Rect centeredInfoRect = new Rect(
+                        moveUpRect.x,
+                        y + ((rowHeight - moveUpRect.height) / 2f),
+                        moveUpRect.width,
+                        moveUpRect.height);
 
-                    TooltipHandler.TipRegion(
-                        moveUpRect,
-                        "WardrobeAttendant.Slot.MoveUp".Translate());
+                    DrawServiceOrderInfo(centeredInfoRect);
+                }
+                else
+                {
+                    DrawServiceOrderInfo(moveUpRect);
                 }
 
-                if (i < slots.Count - 1)
+                if (!isLastSlot)
                 {
                     if (Widgets.ButtonImage(moveDownRect, TexButton.ReorderDown))
                     {
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         component.MoveSlot(target, slot, 1);
                     }
-
-                    TooltipHandler.TipRegion(
-                        moveDownRect,
-                        "WardrobeAttendant.Slot.MoveDown".Translate());
+                }
+                else if (!isFirstSlot)
+                {
+                    DrawServiceOrderInfo(moveDownRect);
                 }
 
                 if (Widgets.ButtonText(editRect,
@@ -376,6 +397,21 @@ namespace WardrobeAttendant
             }
 
             listing.End();
+        }
+
+        private static void DrawServiceOrderInfo(Rect rect)
+        {
+            TextAnchor previousAnchor = Text.Anchor;
+
+            Text.Anchor = TextAnchor.MiddleCenter;
+
+            Widgets.Label(rect, "?");
+
+            Text.Anchor = previousAnchor;
+
+            TooltipHandler.TipRegion(
+                rect,
+                "WardrobeAttendant.Slot.ServiceOrderInfo".Translate());
         }
 
         private void ApplySavedPlacement()

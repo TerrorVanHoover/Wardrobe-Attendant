@@ -90,8 +90,7 @@
 	
 	<WardrobeAttendant.Slot.ExactDefUnwearable>Текущий слот считается невыполнимым и обслуживаться не будет: выбранная вещь не может быть надета этим колонистом.</WardrobeAttendant.Slot.ExactDefUnwearable>
 
-	<WardrobeAttendant.Slot.MoveUp>Переместить слот выше</WardrobeAttendant.Slot.MoveUp>
-	<WardrobeAttendant.Slot.MoveDown>Переместить слот ниже</WardrobeAttendant.Slot.MoveDown>
+	<WardrobeAttendant.Slot.ServiceOrderInfo>Порядок обслуживания: сверху вниз. Правила с конкретной вещью имеют приоритет над правилами полного набора.</WardrobeAttendant.Slot.ServiceOrderInfo>
 	
 
 </LanguageData>
