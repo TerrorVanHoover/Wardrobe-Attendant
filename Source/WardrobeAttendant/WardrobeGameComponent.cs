@@ -35,6 +35,9 @@ namespace WardrobeAttendant
         private static readonly List<int> ExpiredPendingJobIds =
             new List<int>();
 
+        private readonly Dictionary<int, int> slotOrderVersionsByPawnId =
+            new Dictionary<int, int>();
+
         public WardrobeGameComponent(Game game)
         {
         }
@@ -351,6 +354,63 @@ namespace WardrobeAttendant
             return slots.Count > 0;
         }
 
+        public int GetSlotOrderVersion(Pawn pawn)
+        {
+            if (pawn == null)
+            {
+                return 0;
+            }
+
+            return slotOrderVersionsByPawnId.TryGetValue(
+                pawn.thingIDNumber,
+                out int version)
+                ? version
+                : 0;
+        }
+
+        private void IncrementSlotOrderVersion(Pawn pawn)
+        {
+            if (pawn == null)
+            {
+                return;
+            }
+
+            slotOrderVersionsByPawnId.TryGetValue(
+                pawn.thingIDNumber,
+                out int version);
+
+            slotOrderVersionsByPawnId[pawn.thingIDNumber] = version + 1;
+        }
+
+        private void PruneSlotOrderVersions()
+        {
+            if (slotOrderVersionsByPawnId.Count == 0)
+            {
+                return;
+            }
+
+            List<int> stalePawnIds = null;
+
+            foreach (var pair in slotOrderVersionsByPawnId)
+            {
+                if (!assignmentsByPawnId.ContainsKey(pair.Key))
+                {
+                    stalePawnIds ??= new List<int>();
+                    stalePawnIds.Add(pair.Key);
+                }
+            }
+
+            if (stalePawnIds == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < stalePawnIds.Count; i++)
+            {
+                slotOrderVersionsByPawnId.Remove(stalePawnIds[i]);
+            }
+        }
+
         public WardrobeSlot AddSlot(Pawn pawn)
         {
             var assignment = GetAssignment(pawn);
@@ -406,7 +466,9 @@ namespace WardrobeAttendant
             slots[slotIndex] = slots[targetIndex];
             slots[targetIndex] = slot;
 
+            IncrementSlotOrderVersion(pawn);
             UpdateLockPendingSlotIndexes(pawn);
+            WorkGiver_WardrobeAttendant.InvalidateExactCandidateCache();
         }
 
         private void UpdateLockPendingSlotIndexes(Pawn pawn)
@@ -618,7 +680,7 @@ namespace WardrobeAttendant
 
         // Note: for both supported job defs targetA is the pawn being dressed
         // or undressed, so targetId/target store that pawn (not the worker).
-        private static bool TryMarkPending(
+        private bool TryMarkPending(
             Dictionary<int, PendingWardrobeJob> pendingJobs,
             Thing thing,
             Job job,
@@ -630,15 +692,18 @@ namespace WardrobeAttendant
                 return false;
             }
 
+            Pawn jobTarget = job.GetTarget(TargetIndex.A).Thing as Pawn;
+
             var pending = new PendingWardrobeJob
             {
                 jobId = job.loadID,
-                targetId = job.GetTarget(TargetIndex.A).Thing?.thingIDNumber ?? -1,
+                targetId = jobTarget?.thingIDNumber ?? -1,
                 expiresAt = CurrentTick + PendingJobDurationTicks,
                 job = job,
-                target = job.GetTarget(TargetIndex.A).Thing as Pawn,
+                target = jobTarget,
                 slot = slot,
-                slotIndex = slotIndex
+                slotIndex = slotIndex,
+                slotOrderVersion = GetSlotOrderVersion(jobTarget)
             };
 
             pendingJobs[thing.thingIDNumber] = pending;
@@ -719,6 +784,8 @@ namespace WardrobeAttendant
 
                 assignment.slots.RemoveAll(slot => slot == null);
             }
+
+            PruneSlotOrderVersions();
         }
 
         private static int CurrentTick =>
@@ -954,6 +1021,7 @@ namespace WardrobeAttendant
             public Pawn target;
             public WardrobeSlot slot;
             public int slotIndex = -1;
+            public int slotOrderVersion;
 
             public void ExposeData()
             {
@@ -963,6 +1031,7 @@ namespace WardrobeAttendant
                 Scribe_References.Look(ref job, "job");
                 Scribe_References.Look(ref target, "target");
                 Scribe_Values.Look(ref slotIndex, "slotIndex", -1);
+                Scribe_Values.Look(ref slotOrderVersion, "slotOrderVersion", 0);
             }
         }
     }

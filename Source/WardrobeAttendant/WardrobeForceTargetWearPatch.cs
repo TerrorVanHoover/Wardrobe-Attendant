@@ -44,7 +44,7 @@ namespace WardrobeAttendant
                 WardrobeGameComponent component = WardrobeGameComponent.Get;
 
                 if (component == null ||
-                    !component.TryGetLockPending(apparel, out _))
+                    !component.TryGetLockPending(apparel, out var pending))
                 {
                     return true;
                 }
@@ -67,6 +67,27 @@ namespace WardrobeAttendant
                             "[Wardrobe] Cancelled stale ForceTargetWear job for " +
                             $"{target.LabelShortCap}: " +
                             $"{apparel.def.defName} is no longer a valid candidate.");
+                    }
+
+                    __instance.EndJobWith(JobCondition.Incompletable);
+                    return false;
+                }
+
+                if (pending.slotOrderVersion != component.GetSlotOrderVersion(target) &&
+                    !WorkGiver_WardrobeAttendant.IsWearStillHighestPriority(
+                        target,
+                        apparel,
+                        worker,
+                        pending.slotOrderVersion))
+                {
+                    component.ClearLockPending(apparel);
+
+                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+                    {
+                        Log.Message(
+                            "[Wardrobe] Cancelled ForceTargetWear job after slot reorder for " +
+                            $"{target.LabelShortCap}: " +
+                            $"{apparel.def.defName} is no longer the highest-priority candidate.");
                     }
 
                     __instance.EndJobWith(JobCondition.Incompletable);

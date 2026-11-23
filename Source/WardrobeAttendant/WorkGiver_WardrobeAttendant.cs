@@ -1154,6 +1154,169 @@ namespace WardrobeAttendant
             return false;
         }
 
+        public static bool IsWearStillHighestPriority(
+            Pawn target,
+            Apparel apparel,
+            Pawn worker,
+            int issuedSlotOrderVersion)
+        {
+            if (target == null ||
+                apparel == null ||
+                worker == null ||
+                apparel.Destroyed ||
+                target.apparel == null)
+            {
+                return true;
+            }
+
+            WardrobeGameComponent component = WardrobeGameComponent.Get;
+
+            if (component == null ||
+                !component.TryGetSlots(target, out List<WardrobeSlot> slots))
+            {
+                return true;
+            }
+
+            int currentSlotOrderVersion = component.GetSlotOrderVersion(target);
+
+            if (currentSlotOrderVersion == issuedSlotOrderVersion)
+            {
+                return true;
+            }
+
+            List<Thing> mapApparel = GetMapApparel(target.Map);
+            List<Apparel> wornApparel = target.apparel.WornApparel;
+            ApparelPolicy policy = target.outfits?.CurrentApparelPolicy;
+            HashSet<ThingDef> protectedExactDefs = GetProtectedExactDefs(target);
+            List<ThingDef> availableExactDefs = GetAvailableExactDefs(
+                target,
+                worker,
+                mapApparel,
+                slots,
+                policy);
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                WardrobeSlot slot = slots[i];
+
+                if (slot == null ||
+                    !slot.enabled ||
+                    slot.mode != WardrobeSlotMode.ExactItem ||
+                    !IsExactSlotWearable(target, slot))
+                {
+                    continue;
+                }
+
+                Apparel exactCandidate = GetCachedExactCandidate(
+                    target,
+                    slot,
+                    worker,
+                    mapApparel,
+                    wornApparel,
+                    policy,
+                    protectedExactDefs);
+
+                if (exactCandidate == null)
+                {
+                    continue;
+                }
+
+                if (apparel.def == slot.exactApparelDef &&
+                    CanUseExactCandidate(
+                        target,
+                        slot,
+                        apparel,
+                        wornApparel,
+                        protectedExactDefs))
+                {
+                    return true;
+                }
+
+                if (!ApparelUtility.CanWearTogether(
+                        apparel.def,
+                        exactCandidate.def,
+                        target.RaceProps.body))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                WardrobeSlot slot = slots[i];
+
+                if (slot == null ||
+                    !slot.enabled ||
+                    slot.mode != WardrobeSlotMode.FullOutfit)
+                {
+                    continue;
+                }
+
+                List<Apparel> candidates = FindAllApparel(
+                    target,
+                    slot,
+                    worker,
+                    mapApparel,
+                    AllApparelLayers,
+                    policy);
+
+                Apparel bestCandidate = null;
+                int candidateCount = candidates.Count;
+
+                for (int j = 0; j < candidateCount; j++)
+                {
+                    Apparel candidate = candidates[j];
+
+                    if (!CanUseFullOutfitCandidate(
+                            target,
+                            slot,
+                            candidate,
+                            wornApparel,
+                            protectedExactDefs,
+                            availableExactDefs))
+                    {
+                        continue;
+                    }
+
+                    if (bestCandidate == null ||
+                        CompareApparel(candidate, bestCandidate, slot) > 0)
+                    {
+                        bestCandidate = candidate;
+                    }
+                }
+
+                if (bestCandidate == null)
+                {
+                    continue;
+                }
+
+                if (CanUseFullOutfitCandidate(
+                        target,
+                        slot,
+                        apparel,
+                        wornApparel,
+                        protectedExactDefs,
+                        availableExactDefs))
+                {
+                    return true;
+                }
+
+                if (!ApparelUtility.CanWearTogether(
+                        apparel.def,
+                        bestCandidate.def,
+                        target.RaceProps.body))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            return true;
+        }
+
         private static void LogWearValidationFailure(
             Pawn target,
             Apparel apparel,

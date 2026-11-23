@@ -13,6 +13,7 @@
 		Features:
 		- Create multiple apparel rules per pawn.
 		- Reorder apparel rules directly in the Wardrobe window. Slot order determines the order in which Wardrobe Attendant evaluates rules: rules higher in the list are serviced first. Exact item rules take priority over Full outfit rules when both can apply to the same apparel. Active wardrobe jobs remain valid after reordering, and pending lock-job references are updated so saves made during an active job restore the correct rule after loading.
+		- Reordering apparel rules is respected by active wardrobe jobs. If a higher-priority rule becomes applicable after a slot is moved, an active ForceTargetWear job is revalidated and cancelled when its selected apparel is no longer the highest-priority candidate. Compatible higher-priority rules do not interrupt an active job, and jobs are reissued according to the new slot order.
 		- Full outfit mode: automatically find and equip the best permitted apparel.
 		- Exact item mode: search only for the selected apparel def; other apparel sharing its layers does not interfere with selection.
 		- Filter apparel by quality range and durability threshold.
