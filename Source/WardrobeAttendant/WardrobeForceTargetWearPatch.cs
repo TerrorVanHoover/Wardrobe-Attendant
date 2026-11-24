@@ -73,25 +73,32 @@ namespace WardrobeAttendant
                     return false;
                 }
 
-                if (pending.slotOrderVersion != component.GetSlotOrderVersion(target) &&
-                    !WorkGiver_WardrobeAttendant.IsWearStillHighestPriority(
-                        target,
-                        apparel,
-                        worker,
-                        pending.slotOrderVersion))
-                {
-                    component.ClearLockPending(apparel);
+                int currentSlotOrderVersion = component.GetSlotOrderVersion(target);
 
-                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+                if (pending.slotOrderVersion != currentSlotOrderVersion &&
+                    pending.lastRevalidatedSlotOrderVersion != currentSlotOrderVersion)
+                {
+                    if (!WorkGiver_WardrobeAttendant.IsWearStillHighestPriority(
+                            target,
+                            apparel,
+                            worker,
+                            pending.slotOrderVersion))
                     {
-                        Log.Message(
-                            "[Wardrobe] Cancelled ForceTargetWear job after slot reorder for " +
-                            $"{target.LabelShortCap}: " +
-                            $"{apparel.def.defName} is no longer the highest-priority candidate.");
+                        component.ClearLockPending(apparel);
+
+                        if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+                        {
+                            Log.Message(
+                                "[Wardrobe] Cancelled ForceTargetWear job after slot reorder for " +
+                                $"{target.LabelShortCap}: " +
+                                $"{apparel.def.defName} is no longer the highest-priority candidate.");
+                        }
+
+                        __instance.EndJobWith(JobCondition.Incompletable);
+                        return false;
                     }
 
-                    __instance.EndJobWith(JobCondition.Incompletable);
-                    return false;
+                    pending.lastRevalidatedSlotOrderVersion = currentSlotOrderVersion;
                 }
 
                 return true;

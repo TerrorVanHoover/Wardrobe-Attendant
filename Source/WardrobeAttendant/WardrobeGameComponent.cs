@@ -771,6 +771,7 @@ namespace WardrobeAttendant
                 if (assignment == null ||
                     assignment.target == null ||
                     assignment.target.Destroyed ||
+                    assignment.target.Dead ||
                     assignment.slots == null)
                 {
                     if (assignment?.target != null)
@@ -997,6 +998,8 @@ namespace WardrobeAttendant
 
                 if (assignment == null ||
                     assignment.target == null ||
+                    assignment.target.Destroyed ||
+                    assignment.target.Dead ||
                     assignment.slots == null)
                 {
                     if (assignment?.target != null)
@@ -1010,6 +1013,8 @@ namespace WardrobeAttendant
 
                 assignment.slots.RemoveAll(slot => slot == null);
             }
+
+            PruneSlotOrderVersions();
         }
 
         public sealed class PendingWardrobeJob : IExposable
@@ -1022,6 +1027,7 @@ namespace WardrobeAttendant
             public WardrobeSlot slot;
             public int slotIndex = -1;
             public int slotOrderVersion;
+            public int lastRevalidatedSlotOrderVersion = -1;
 
             public void ExposeData()
             {
@@ -1032,6 +1038,7 @@ namespace WardrobeAttendant
                 Scribe_References.Look(ref target, "target");
                 Scribe_Values.Look(ref slotIndex, "slotIndex", -1);
                 Scribe_Values.Look(ref slotOrderVersion, "slotOrderVersion", 0);
+                Scribe_Values.Look(ref lastRevalidatedSlotOrderVersion, "lastRevalidatedSlotOrderVersion", -1);
             }
         }
     }

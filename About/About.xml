@@ -32,6 +32,7 @@
 		- Exact apparel rules can replace their required apparel with a better item of the same apparel def after it falls below the durability threshold. The currently worn same-def item is treated as the replacement target, not as a conflicting item.
 		- Exact apparel rules can remove their required apparel after it falls below the durability threshold when no permitted replacement is available.
 		- Exact apparel rules protect their required apparel from being removed or replaced by full outfit rules.
+		- When multiple Exact item rules apply, a higher-priority Exact item rule can displace conflicting apparel assigned to a lower-priority Exact item rule; lower-priority rules cannot displace apparel required by higher-priority rules.
 		- Full outfit rules do not remove or replace apparel required by exact item rules.
 		- If the only apparent replacement for worn apparel is protected by an exact item rule, the worn apparel can still be removed according to its own removal settings.
 		- Workers respect outfit policies, reservations, reachability, burning items, body compatibility and apparel restrictions.

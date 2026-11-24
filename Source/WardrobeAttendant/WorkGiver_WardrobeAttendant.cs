@@ -31,6 +31,11 @@ namespace WardrobeAttendant
         private static readonly List<long> StaleJobResultKeysScratch =
             new List<long>();
 
+        private static readonly Dictionary<(int TargetId, ThingDef Def), int> ExactSlotIndexesScratch =
+            new Dictionary<(int TargetId, ThingDef Def), int>();
+
+        private static int ExactSlotIndexesTick = -1;
+
         private sealed class WardrobeJobScanCache
         {
             public int Tick;
@@ -74,6 +79,59 @@ namespace WardrobeAttendant
             return GetCachedJob(worker, thing, issueJob: false) != null;
         }
 
+        private static bool TryGetExactSlotIndex(
+            Pawn target,
+            List<WardrobeSlot> slots,
+            ThingDef apparelDef,
+            out int slotIndex)
+        {
+            slotIndex = -1;
+
+            if (target == null ||
+                slots == null ||
+                apparelDef == null)
+            {
+                return false;
+            }
+
+            int currentTick = Find.TickManager?.TicksGame ?? 0;
+
+            if (ExactSlotIndexesTick != currentTick)
+            {
+                ExactSlotIndexesScratch.Clear();
+                ExactSlotIndexesTick = currentTick;
+            }
+
+            var cacheKey = (target.thingIDNumber, apparelDef);
+
+            if (ExactSlotIndexesScratch.TryGetValue(cacheKey, out int cachedIndex))
+            {
+                slotIndex = cachedIndex;
+                return slotIndex >= 0;
+            }
+
+            for (int i = 0; i < slots.Count; i++)
+            {
+                WardrobeSlot slot = slots[i];
+
+                if (slot == null ||
+                    !slot.enabled ||
+                    slot.mode != WardrobeSlotMode.ExactItem ||
+                    slot.exactApparelDef != apparelDef ||
+                    !IsExactSlotWearable(target, slot))
+                {
+                    continue;
+                }
+
+                slotIndex = i;
+                break;
+            }
+
+            ExactSlotIndexesScratch[cacheKey] = slotIndex;
+
+            return slotIndex >= 0;
+        }
+
         public override Job JobOnThing(Pawn worker, Thing thing, bool forced = false)
         {
             var target = thing as Pawn;
@@ -112,7 +170,8 @@ namespace WardrobeAttendant
 
                 MarkApparelDisplacedByEarlyReplacement(
                     target,
-                    apparelToWear);
+                    apparelToWear,
+                    jobSlot);
             }
             else if (job.def == WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel &&
                 job.targetB.Thing is Apparel selfWearApparel)
@@ -121,7 +180,8 @@ namespace WardrobeAttendant
 
                 MarkApparelDisplacedByEarlyReplacement(
                     target,
-                    selfWearApparel);
+                    selfWearApparel,
+                    jobSlot);
             }
 
             return job;
@@ -129,13 +189,15 @@ namespace WardrobeAttendant
 
         private static void MarkApparelDisplacedByEarlyReplacement(
     Pawn target,
-    Apparel candidate)
+    Apparel candidate,
+    WardrobeSlot candidateSlot)
         {
             if (target?.apparel == null ||
                 target.RaceProps?.body == null ||
                 candidate == null ||
                 candidate.Destroyed ||
-                candidate.def?.apparel == null)
+                candidate.def?.apparel == null ||
+                candidateSlot == null)
             {
                 return;
             }
@@ -144,6 +206,13 @@ namespace WardrobeAttendant
 
             if (component == null ||
                 !component.TryGetSlots(target, out List<WardrobeSlot> slots))
+            {
+                return;
+            }
+
+            int candidateSlotIndex = slots.IndexOf(candidateSlot);
+
+            if (candidateSlotIndex < 0)
             {
                 return;
             }
@@ -202,6 +271,27 @@ namespace WardrobeAttendant
                             worn.def,
                             target.RaceProps.body))
                     {
+                        continue;
+                    }
+
+                    bool isLowerExactOwned =
+                        candidateSlot.mode == WardrobeSlotMode.ExactItem &&
+                        TryGetExactSlotIndex(
+                            target,
+                            slots,
+                            worn.def,
+                            out int wornOwnerIndex) &&
+                        wornOwnerIndex > candidateSlotIndex;
+
+                    if (isLowerExactOwned)
+                    {
+                        if (IsApparelLocked(target, worn) &&
+                            !candidateSlot.allowWorkerRemoveLocked)
+                        {
+                            continue;
+                        }
+
+                        WardrobeDisplacedApparelTracker.MarkRecentlyDisplaced(worn);
                         continue;
                     }
 
@@ -501,7 +591,16 @@ namespace WardrobeAttendant
                     continue;
                 }
 
-                var job = FindExactItemJob(target, slot, worker, mapApparel, wornApparel, policy, protectedExactDefs);
+                var job = FindExactItemJob(
+                    target,
+                    slot,
+                    worker,
+                    mapApparel,
+                    wornApparel,
+                    policy,
+                    protectedExactDefs,
+                    slots,
+                    i);
 
                 if (job != null)
                 {
@@ -861,7 +960,14 @@ namespace WardrobeAttendant
                 if (candidateSlot.mode == WardrobeSlotMode.ExactItem)
                 {
                     if (apparel.def == candidateSlot.exactApparelDef &&
-                        CanUseExactCandidate(target, candidateSlot, apparel, wornApparel, protectedExactDefs))
+                        CanUseExactCandidate(
+                        target,
+                        candidateSlot,
+                        apparel,
+                        wornApparel,
+                        protectedExactDefs,
+                        slots,
+                        i))
                     {
                         slot = candidateSlot;
                         return true;
@@ -974,7 +1080,9 @@ namespace WardrobeAttendant
             WardrobeSlot slot,
             Apparel candidate,
             List<Apparel> wornApparel,
-            HashSet<ThingDef> protectedExactDefs)
+            HashSet<ThingDef> protectedExactDefs,
+            List<WardrobeSlot> slots,
+            int slotIndex)
         {
             if (target?.RaceProps?.body == null ||
                 slot == null ||
@@ -1027,7 +1135,24 @@ namespace WardrobeAttendant
 
                 if (protectedExactDefs.Contains(worn.def))
                 {
-                    return false;
+                    if (!TryGetExactSlotIndex(
+                            target,
+                            slots,
+                            worn.def,
+                            out int ownerIndex))
+                    {
+                        return false;
+                    }
+
+                    if (ownerIndex < slotIndex)
+                    {
+                        return false;
+                    }
+
+                    if (ownerIndex > slotIndex)
+                    {
+                        continue;
+                    }
                 }
             }
 
@@ -1110,11 +1235,13 @@ namespace WardrobeAttendant
                     }
 
                     if (CanUseExactCandidate(
-                            target,
-                            slot,
-                            apparel,
-                            wornApparel,
-                            protectedExactDefs))
+                        target,
+                        slot,
+                        apparel,
+                        wornApparel,
+                        protectedExactDefs,
+                        slots,
+                        i))
                     {
                         return true;
                     }
@@ -1155,10 +1282,10 @@ namespace WardrobeAttendant
         }
 
         public static bool IsWearStillHighestPriority(
-            Pawn target,
-            Apparel apparel,
-            Pawn worker,
-            int issuedSlotOrderVersion)
+    Pawn target,
+    Apparel apparel,
+    Pawn worker,
+    int issuedSlotOrderVersion)
         {
             if (target == null ||
                 apparel == null ||
@@ -1195,6 +1322,12 @@ namespace WardrobeAttendant
                 slots,
                 policy);
 
+            bool hasExactOwner = TryGetExactSlotIndex(
+                target,
+                slots,
+                apparel.def,
+                out int ownerIndex);
+
             for (int i = 0; i < slots.Count; i++)
             {
                 WardrobeSlot slot = slots[i];
@@ -1214,11 +1347,24 @@ namespace WardrobeAttendant
                     mapApparel,
                     wornApparel,
                     policy,
-                    protectedExactDefs);
+                    protectedExactDefs,
+                    slots,
+                    i);
 
-                if (exactCandidate == null)
+                if (exactCandidate != null &&
+                    !ApparelUtility.CanWearTogether(
+                        apparel.def,
+                        exactCandidate.def,
+                        target.RaceProps.body))
                 {
-                    continue;
+                    bool candidateCanDisplaceApparel =
+                        hasExactOwner &&
+                        i > ownerIndex;
+
+                    if (!candidateCanDisplaceApparel)
+                    {
+                        return false;
+                    }
                 }
 
                 if (apparel.def == slot.exactApparelDef &&
@@ -1227,21 +1373,15 @@ namespace WardrobeAttendant
                         slot,
                         apparel,
                         wornApparel,
-                        protectedExactDefs))
+                        protectedExactDefs,
+                        slots,
+                        i))
                 {
                     return true;
                 }
-
-                if (!ApparelUtility.CanWearTogether(
-                        apparel.def,
-                        exactCandidate.def,
-                        target.RaceProps.body))
-                {
-                    return false;
-                }
-
-                return true;
             }
+
+            bool fullOutfitConflict = false;
 
             for (int i = 0; i < slots.Count; i++)
             {
@@ -1308,13 +1448,11 @@ namespace WardrobeAttendant
                         bestCandidate.def,
                         target.RaceProps.body))
                 {
-                    return false;
+                    fullOutfitConflict = true;
                 }
-
-                return true;
             }
 
-            return true;
+            return !fullOutfitConflict;
         }
 
         private static void LogWearValidationFailure(
@@ -1344,15 +1482,15 @@ namespace WardrobeAttendant
         }
 
         private static bool HasSuitableReplacement(
-            Pawn target,
-            WardrobeSlot slot,
-            Pawn worker,
-            List<Thing> mapApparel,
-            List<Apparel> wornApparel,
-            Apparel worn,
-            ApparelPolicy policy,
-            HashSet<ThingDef> protectedExactDefs,
-            List<ThingDef> availableExactDefs)
+    Pawn target,
+    WardrobeSlot slot,
+    Pawn worker,
+    List<Thing> mapApparel,
+    List<Apparel> wornApparel,
+    Apparel worn,
+    ApparelPolicy policy,
+    HashSet<ThingDef> protectedExactDefs,
+    List<ThingDef> availableExactDefs)
         {
             if (target == null ||
                 slot == null ||
@@ -1363,8 +1501,23 @@ namespace WardrobeAttendant
                 return false;
             }
 
+            WardrobeGameComponent component = WardrobeGameComponent.Get;
+
+            if (component == null ||
+                !component.TryGetSlots(target, out List<WardrobeSlot> slots))
+            {
+                return false;
+            }
+
+            int slotIndex = slots.IndexOf(slot);
+
             if (slot.mode == WardrobeSlotMode.ExactItem)
             {
+                if (slotIndex < 0)
+                {
+                    return false;
+                }
+
                 Apparel exactCandidate = GetCachedExactCandidate(
                     target,
                     slot,
@@ -1372,7 +1525,9 @@ namespace WardrobeAttendant
                     mapApparel,
                     wornApparel,
                     policy,
-                    protectedExactDefs);
+                    protectedExactDefs,
+                    slots,
+                    slotIndex);
 
                 return exactCandidate != null &&
                        exactCandidate != worn &&
@@ -1430,21 +1585,19 @@ namespace WardrobeAttendant
             List<Thing> mapApparel,
             List<Apparel> wornApparel,
             ApparelPolicy policy,
-            HashSet<ThingDef> protectedExactDefs)
+            HashSet<ThingDef> protectedExactDefs,
+            List<WardrobeSlot> slots,
+            int slotIndex)
         {
             Apparel candidate = GetCachedExactCandidate(
                 target, slot, worker, mapApparel, wornApparel, policy,
-                protectedExactDefs);
+                protectedExactDefs, slots, slotIndex);
 
             return candidate != null
                 ? JobMaker.MakeJob(JobDefOf.ForceTargetWear, target, candidate)
                 : null;
         }
 
-        // Exact candidates are the hot path: the same (worker, target, slot)
-        // triple is rescanned by job issuing, replacement checks and both driver
-        // revalidation paths. The result is cached for the current tick with the
-        // same granularity as GetMapApparel, so behaviour is unchanged.
         private static Apparel GetCachedExactCandidate(
             Pawn target,
             WardrobeSlot slot,
@@ -1452,7 +1605,9 @@ namespace WardrobeAttendant
             List<Thing> mapApparel,
             List<Apparel> wornApparel,
             ApparelPolicy policy,
-            HashSet<ThingDef> protectedExactDefs)
+            HashSet<ThingDef> protectedExactDefs,
+            List<WardrobeSlot> slots,
+            int slotIndex)
         {
             int currentTick = Find.TickManager?.TicksGame ?? 0;
 
@@ -1476,7 +1631,9 @@ namespace WardrobeAttendant
                 mapApparel,
                 wornApparel,
                 policy,
-                protectedExactDefs);
+                protectedExactDefs,
+                slots,
+                slotIndex);
 
             ExactCandidateCache[key] = candidate;
 
@@ -1490,7 +1647,9 @@ namespace WardrobeAttendant
             List<Thing> mapApparel,
             List<Apparel> wornApparel,
             ApparelPolicy policy,
-            HashSet<ThingDef> protectedExactDefs)
+            HashSet<ThingDef> protectedExactDefs,
+            List<WardrobeSlot> slots,
+            int slotIndex)
         {
             if (target?.RaceProps?.body == null ||
                 slot?.exactApparelDef?.apparel == null)
@@ -1525,11 +1684,38 @@ namespace WardrobeAttendant
                     continue;
                 }
 
-                if (protectedExactDefs.Contains(worn.def) &&
-                    !ApparelUtility.CanWearTogether(
+                if (ApparelUtility.CanWearTogether(
                         candidate.def, worn.def, target.RaceProps.body))
                 {
+                    continue;
+                }
+
+                if (IsApparelLocked(target, worn) &&
+                    !slot.allowWorkerRemoveLocked)
+                {
                     return null;
+                }
+
+                if (protectedExactDefs.Contains(worn.def))
+                {
+                    if (!TryGetExactSlotIndex(
+                            target,
+                            slots,
+                            worn.def,
+                            out int ownerIndex))
+                    {
+                        return null;
+                    }
+
+                    if (ownerIndex < slotIndex)
+                    {
+                        return null;
+                    }
+
+                    if (ownerIndex > slotIndex)
+                    {
+                        continue;
+                    }
                 }
             }
 
@@ -1960,7 +2146,9 @@ namespace WardrobeAttendant
                     mapApparel,
                     wornApparel,
                     policy,
-                    protectedExactDefs);
+                    protectedExactDefs,
+                    slots,
+                    i);
 
                 if (candidate != null)
                 {

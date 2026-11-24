@@ -16,6 +16,8 @@ namespace WardrobeAttendant
 
         private int issuedSlotOrderVersion;
 
+        private int lastValidatedSlotOrderVersion = -1;
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -24,6 +26,11 @@ namespace WardrobeAttendant
                 ref issuedSlotOrderVersion,
                 "issuedSlotOrderVersion",
                 0);
+
+            Scribe_Values.Look(
+                ref lastValidatedSlotOrderVersion,
+                "lastValidatedSlotOrderVersion",
+                -1);
         }
 
         public override bool TryMakePreToilReservations(bool errorOnFailed)
@@ -111,17 +118,31 @@ namespace WardrobeAttendant
         {
             WardrobeGameComponent component = WardrobeGameComponent.Get;
 
-            if (component == null ||
-                issuedSlotOrderVersion == component.GetSlotOrderVersion(pawn))
+            if (component == null)
             {
                 return true;
             }
 
-            return WorkGiver_WardrobeAttendant.IsWearStillHighestPriority(
-                pawn,
-                Apparel,
-                pawn,
-                issuedSlotOrderVersion);
+            int currentSlotOrderVersion = component.GetSlotOrderVersion(pawn);
+
+            if (currentSlotOrderVersion == issuedSlotOrderVersion ||
+                currentSlotOrderVersion == lastValidatedSlotOrderVersion)
+            {
+                return true;
+            }
+
+            if (!WorkGiver_WardrobeAttendant.IsWearStillHighestPriority(
+                    pawn,
+                    Apparel,
+                    pawn,
+                    issuedSlotOrderVersion))
+            {
+                return false;
+            }
+
+            lastValidatedSlotOrderVersion = currentSlotOrderVersion;
+
+            return true;
         }
 
         private void TryUnequipConflictingApparel(bool forbidDroppedApparel)
