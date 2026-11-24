@@ -14,9 +14,25 @@ namespace WardrobeAttendant
 
         private int unequipBuffer;
 
+        private int issuedSlotOrderVersion;
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+
+            Scribe_Values.Look(
+                ref issuedSlotOrderVersion,
+                "issuedSlotOrderVersion",
+                0);
+        }
+
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
             job.count = 1;
+
+            WardrobeGameComponent component = WardrobeGameComponent.Get;
+
+            issuedSlotOrderVersion = component?.GetSlotOrderVersion(pawn) ?? 0;
 
             if (!WorkGiver_WardrobeAttendant.IsWearStillValid(pawn, Apparel, pawn))
             {
@@ -66,6 +82,12 @@ namespace WardrobeAttendant
             Toil wear = ToilMaker.MakeToil("WardrobeSelfWearWear");
             wear.initAction = () =>
             {
+                if (!IsStillHighestPriorityApparel())
+                {
+                    EndJobWith(JobCondition.Incompletable);
+                    return;
+                }
+
                 if (!WorkGiver_WardrobeAttendant.IsWearStillValid(pawn, Apparel, pawn))
                 {
                     EndJobWith(JobCondition.Errored);
@@ -85,8 +107,31 @@ namespace WardrobeAttendant
             yield return wear;
         }
 
+        private bool IsStillHighestPriorityApparel()
+        {
+            WardrobeGameComponent component = WardrobeGameComponent.Get;
+
+            if (component == null ||
+                issuedSlotOrderVersion == component.GetSlotOrderVersion(pawn))
+            {
+                return true;
+            }
+
+            return WorkGiver_WardrobeAttendant.IsWearStillHighestPriority(
+                pawn,
+                Apparel,
+                pawn,
+                issuedSlotOrderVersion);
+        }
+
         private void TryUnequipConflictingApparel(bool forbidDroppedApparel)
         {
+            if (!IsStillHighestPriorityApparel())
+            {
+                EndJobWith(JobCondition.Incompletable);
+                return;
+            }
+
             if (!WorkGiver_WardrobeAttendant.TryGetSelfWearSlot(pawn, Apparel, out WardrobeSlot slot))
             {
                 EndJobWith(JobCondition.Errored);
