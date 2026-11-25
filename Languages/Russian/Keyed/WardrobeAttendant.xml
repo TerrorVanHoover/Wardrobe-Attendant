@@ -72,8 +72,8 @@
 	<WardrobeAttendant.Slot.AllowEarlyReplacement>Разрешить заменять текущую вещь до достижения порога прочности</WardrobeAttendant.Slot.AllowEarlyReplacement>
 	<WardrobeAttendant.Slot.AllowEarlyReplacementDesc>Если включено, более подходящая доступная вещь может заменить текущую до достижения порога прочности. Требуется преимущество по score минимум на 10.</WardrobeAttendant.Slot.AllowEarlyReplacementDesc>
 
-	<WardrobeAttendant.Slot.AllowWorkerRemoveLocked>Разрешить работнику Гардеробщик снимать заблокированную одежду</WardrobeAttendant.Slot.AllowWorkerRemoveLocked>
-	<WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>Если включено, работник Гардеробщик может снять или заменить эту заблокированную одежду. Если отключено, снять её сможет только игрок.</WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>
+	<WardrobeAttendant.Slot.AllowWorkerRemoveLocked>Разрешить работнику Гардеробщик снимать заблокированные вещи в этом слоте</WardrobeAttendant.Slot.AllowWorkerRemoveLocked>
+	<WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>Если включено, работник Гардеробщик может снимать заблокированные вещи в этом слоте. Если отключено, снимать может только игрок или более приоритетный слот.</WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc>
 
 	<WardrobeAttendant.Summary.EarlyReplacement>Ранняя замена</WardrobeAttendant.Summary.EarlyReplacement>
 	<WardrobeAttendant.Summary.NoEarlyReplacement>Без ранней замены</WardrobeAttendant.Summary.NoEarlyReplacement>

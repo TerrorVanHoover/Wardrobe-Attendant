@@ -1282,10 +1282,10 @@ namespace WardrobeAttendant
         }
 
         public static bool IsWearStillHighestPriority(
-    Pawn target,
-    Apparel apparel,
-    Pawn worker,
-    int issuedSlotOrderVersion)
+            Pawn target,
+            Apparel apparel,
+            Pawn worker,
+            int issuedSlotOrderVersion)
         {
             if (target == null ||
                 apparel == null ||
@@ -1359,9 +1359,9 @@ namespace WardrobeAttendant
                 {
                     bool candidateCanDisplaceApparel =
                         hasExactOwner &&
-                        i > ownerIndex;
+                        i < ownerIndex;
 
-                    if (!candidateCanDisplaceApparel)
+                    if (candidateCanDisplaceApparel)
                     {
                         return false;
                     }
