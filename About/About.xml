@@ -12,23 +12,23 @@
 
 		Features:
 		- Create multiple apparel rules per pawn.
-		- Reorder apparel rules directly in the Wardrobe window. Slot order determines the order in which Wardrobe Attendant evaluates rules: rules higher in the list are serviced first. Exact item rules take priority over Full outfit rules when both can apply to the same apparel. Active wardrobe jobs remain valid after reordering, and pending lock-job references are updated so saves made during an active job restore the correct rule after loading.
-		- Reordering apparel rules is respected by active wardrobe jobs. If a higher-priority rule becomes applicable after a slot is moved, an active ForceTargetWear job is revalidated and cancelled when its selected apparel is no longer the highest-priority candidate. Compatible higher-priority rules do not interrupt an active job, and jobs are reissued according to the new slot order.
-		- Self-service wardrobe jobs also respect slot reordering. If a higher-priority rule becomes applicable after a slot is moved, an active self-wear job is revalidated and cancelled when its selected apparel is no longer the highest-priority candidate. Compatible higher-priority rules do not interrupt an active job.
 		- Full outfit mode: automatically find and equip the best permitted apparel.
 		- Exact item mode: search only for the selected apparel def; other apparel sharing its layers does not interfere with selection.
+		- Reorder apparel rules directly in the Wardrobe window. Slot order determines the order in which rules are evaluated: rules higher in the list are serviced first. Exact item rules take priority over Full outfit rules when both can apply to the same apparel.
+		- Active wardrobe jobs respect slot reordering. If a higher-priority rule becomes applicable after a slot is moved, an active ForceTargetWear or self-wear job is revalidated and cancelled when its selected apparel is no longer the highest-priority candidate. Compatible higher-priority rules do not interrupt an active job, and jobs are reissued according to the new slot order. Pending lock-job references are updated so saves made during an active job restore the correct rule after loading.
 		- Filter apparel by quality range and durability threshold.
 		- Per-slot option to allow or forbid a colonist from servicing their own wardrobe.
 		- Per-slot early replacement: a substantially better available item can replace current apparel before it reaches the durability threshold.
 		- Per-slot option to allow or forbid Wardrobe Attendant workers from removing locked apparel.
-		- Apparel scoring no longer uses market value. It now prioritizes quality, condition, Sharp armor and selected protection stats.
-		- Protection scoring always includes condition, uses normalized cold and heat insulation, toxicity resistance and vacuum resistance. Vacuum protection receives the strongest weight, followed by toxicity protection.
+		- Apparel is scored using quality, condition and actual armor ratings. Market value is not used.
+		- Protection scoring always includes condition and uses normalized cold and heat insulation, toxicity resistance and vacuum resistance. Vacuum protection receives the strongest weight, followed by toxicity protection.
+		- Configure protection priorities for Full outfit and Exact item rules: cold protection, heat protection, armor, toxicity protection and vacuum protection. When protection priorities are enabled, only the selected protection weights are used.
 		- Vanilla self-equipping is prevented from re-equipping apparel that Wardrobe Attendant recently displaced through early replacement.
 		- Vanilla self-equipping is prevented from selecting below-threshold apparel when a suitable replacement is available.
 		- Self-service uses a dedicated self-wear path and respects the same outfit policy, protection, durability, corpse and locked-apparel rules.
-		- Optionally mark suitable apparel as forced after it is equipped by a Wardrobe Attendant job. The player can still remove or replace it manually; Wardrobe Attendant workers respect the slot's locked-apparel removal setting. The lock decision is bound to the apparel rule that issued the job: its current "lock after equipping" setting at the moment of equipping decides both the vanilla padlock and the forced-apparel entry; other rules do not affect it. Toggling the setting while a job is in progress correctly changes the outcome at the moment of equipping. Self-service now always drops conflicting apparel to the ground instead of removing it silently.
+		- Optionally mark suitable apparel as forced after it is equipped by a Wardrobe Attendant job. The player can still remove or replace it manually; workers respect the slot's locked-apparel removal setting. The lock decision is bound to the apparel rule that issued the job: its current "lock after equipping" setting at the moment of equipping decides both the vanilla padlock and the forced-apparel entry. Other rules do not affect it. Toggling the setting while a job is in progress correctly changes the outcome at the moment of equipping. Self-service always drops conflicting apparel to the ground instead of removing it silently.
 		- Optionally replace apparel after it falls below its durability threshold and a better permitted replacement is available.
-		- Optionally remove apparel after it falls below its durability threshold when no compatible replacement is available; a worker removes all eligible worn-out items in one visit, only after completing the removal work. Interrupting the work does not remove apparel.
+		- Optionally remove apparel after it falls below its durability threshold when no compatible replacement is available. A worker removes all eligible worn-out items in one visit, only after completing the removal work. Interrupting the work does not remove apparel.
 		- Exact apparel rules can replace their required apparel with a better item of the same apparel def after it falls below the durability threshold. The currently worn same-def item is treated as the replacement target, not as a conflicting item.
 		- Exact apparel rules can remove their required apparel after it falls below the durability threshold when no permitted replacement is available.
 		- Exact apparel rules protect their required apparel from being removed or replaced by full outfit rules.
@@ -44,21 +44,8 @@
 		- Empty or invalid exact item rules are disabled on load and remain exact item rules; they never become full outfit rules automatically.
 		- Exact item rules whose selected apparel cannot currently be worn by the assigned pawn are marked as unfulfillable. They retain their configuration, display a warning icon, and are excluded from wardrobe servicing and apparel protection until the item becomes wearable again. For humanlike pawns, an exact item remains selectable when its required body part groups exist in the race body definition and can potentially be restored; selecting it shows an explanation.
 		- Exact item selectors display apparel that a humanlike pawn cannot currently wear when its required body part groups exist in the pawn's race body definition and can potentially be restored. Such entries display a warning icon and show an explanation when selected. Colony animals use vanilla body-part wearability checks for their exact apparel lists.
-		- Apparel is selected using quality, condition and actual armor ratings.
-		- Configure protection priorities for Full outfit and Exact item rules: cold protection, heat protection, armor, toxicity protection and vacuum protection.
-		- When protection priorities are enabled, apparel is selected using the selected protection weights; quality, condition and market value are not used.
-		- Protection priorities give increased weight to vacuum protection and toxicity protection.
-		- The slot editor uses tooltips for detailed setting descriptions and supports vertical scrolling when its contents exceed the window height.
-		- The exact apparel selector displays up to ten items at once and scrolls for longer lists.
-		- Wardrobe slot summaries highlight on hover, and long slot names show a full-name tooltip.
-		- Checkboxes highlight and slightly enlarge on hover.
-		- Wardrobe and slot editor windows remember their size and position during the current session and after saving and loading. Their placement can be reset from mod settings.
-		- The Wardrobe button is drawn in an isolated UI group at the top-right of the Gear tab and caches its active-assignment check.
-		- Wardrobe slot summaries are cached and rebuilt only when their relevant settings change.
-		- When no protection priority is enabled, apparel is selected using quality, condition and market value.
 		- Optionally allow corpse-worn apparel, optionally restrict a rule to corpse-worn apparel only, while always respecting the pawn's vanilla apparel policy. Corpse-worn apparel settings apply independently to each apparel rule.
 		- A slot restricted to corpse-worn apparel replaces or removes currently worn non-corpse apparel when a suitable corpse-worn replacement is or is not available.
-		- A slot restricted to corpse-worn apparel replaces or removes matching non-corpse apparel when a suitable corpse-worn replacement is or is not available.
 		- Duplicate dressing and removal jobs are avoided through job, reservation and cached active-job checks.
 		- Compatible with animal apparel and modded races through RimWorld's apparel wearability checks.
 		- The Wardrobe button highlights green when a pawn has at least one enabled apparel slot.
@@ -69,7 +56,6 @@
 		- Apparel removal is revalidated immediately before the worker changes the target's equipment. In batch removal jobs, every eligible apparel item is validated separately, so items with an available replacement remain equipped.
 		- Apparel equipping is revalidated immediately before the target actually wears the selected item. The selected item is validated directly, including apparel already carried by the worker, so an item that no longer matches its rule, policy or protected apparel restrictions is not equipped.
 		- Wardrobe jobs are revalidated when the worker reaches the target and periodically during work, preventing unnecessary waiting or work when apparel or rules have become invalid.
-		- Apparel wearing is revalidated after the worker reaches the recipient; the final wear check verifies item and recipient availability without reselecting candidates.
 		- Wear jobs are revalidated immediately before the worker begins unequipping conflicting apparel, then again during final apparel wearing validation. This avoids a global Harmony patch on JobDriver.DriverTick and reduces compatibility risk with other mods.
 		- Apparel that fails an enabled rule's quality or condition filter is treated as a removal candidate even when its durability remains above the configured threshold.
 		- A valid replacement cancels removal of apparel that fails the rule's quality filter, even when its durability remains above the configured threshold.
@@ -78,11 +64,9 @@
 		- Localized UI through RimWorld translation files.
 		- Optional detailed diagnostics for wardrobe job selection, wear validation, full outfit candidate checks and job completion.
 
-		Wardrobe assignments are maintained through the separate Wardrober work type. A worker must also have Hauling work available. Enable Wardrober in the Work tab.
-		- Wardrobe maintenance is performed through a separate Wardrober work type.
+		Wardrobe maintenance is performed through a separate Wardrober work type. Hauling must be available to enable Wardrober for a pawn, but can be disabled afterward.
 		- Wardrober can be enabled or disabled separately from Hauling.
 		- The Wardrober checkbox is available only to colony colonists and colony slaves whose Hauling work is available.
-		- Wardrober work does not require Hauling to remain enabled after Wardrober has been enabled.
 		- Prisoners and animals cannot perform Wardrober work, but can still be configured as wardrobe targets.
 		- Compatible with colony children, enslaved children, imprisoned children and young colony animals as wardrobe targets.
 		- Only one active Full outfit rule is allowed per pawn; enabling another Full outfit rule deactivates the previous one.

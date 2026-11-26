@@ -28,6 +28,9 @@ namespace WardrobeAttendant
         private Dictionary<int, PendingWardrobeJob> pendingLockApparelJobs =
             new Dictionary<int, PendingWardrobeJob>();
 
+        private readonly Dictionary<int, int> activeWearJobsByApparelId =
+            new Dictionary<int, int>();
+
         private List<int> pendingLockApparelKeys;
 
         private List<PendingWardrobeJob> pendingLockApparelValues;
@@ -590,6 +593,31 @@ namespace WardrobeAttendant
             }
         }
 
+        public bool TryMarkActiveWearJob(Apparel apparel, Job job)
+        {
+            if (apparel == null || job == null)
+            {
+                return false;
+            }
+
+            activeWearJobsByApparelId[apparel.thingIDNumber] = job.loadID;
+            return true;
+        }
+
+        public bool IsActiveWearJob(Apparel apparel)
+        {
+            return apparel != null &&
+                   activeWearJobsByApparelId.ContainsKey(apparel.thingIDNumber);
+        }
+
+        public void ClearActiveWearJob(Apparel apparel)
+        {
+            if (apparel != null)
+            {
+                activeWearJobsByApparelId.Remove(apparel.thingIDNumber);
+            }
+        }
+
         public void ClearPendingJobsForJob(Job job, JobCondition condition)
         {
             if (job == null)
@@ -615,6 +643,7 @@ namespace WardrobeAttendant
             if (job.def == JobDefOf.ForceTargetWear)
             {
                 ClearByJobId(pendingLockApparelJobs, jobId);
+                ClearActiveWearJobsByJobId(jobId);
 
                 if (condition == JobCondition.Succeeded)
                 {
@@ -627,6 +656,7 @@ namespace WardrobeAttendant
             if (job.def == WardrobeJobDefOf.WardrobeAttendant_SelfWearApparel)
             {
                 ClearByJobId(pendingLockApparelJobs, jobId);
+                ClearActiveWearJobsByJobId(jobId);
 
                 if (condition == JobCondition.Succeeded)
                 {
@@ -730,6 +760,29 @@ namespace WardrobeAttendant
             }
         }
 
+        private void ClearActiveWearJobsByJobId(int jobId)
+        {
+            if (activeWearJobsByApparelId.Count == 0)
+            {
+                return;
+            }
+
+            ExpiredPendingJobIds.Clear();
+
+            foreach (var pair in activeWearJobsByApparelId)
+            {
+                if (pair.Value == jobId)
+                {
+                    ExpiredPendingJobIds.Add(pair.Key);
+                }
+            }
+
+            for (int i = 0; i < ExpiredPendingJobIds.Count; i++)
+            {
+                activeWearJobsByApparelId.Remove(ExpiredPendingJobIds[i]);
+            }
+        }
+
         private static void CleanupExpired(
             Dictionary<int, PendingWardrobeJob> pendingJobs,
             int now)
@@ -828,6 +881,7 @@ namespace WardrobeAttendant
 
                 pendingTargetJobs.Clear();
                 pendingRemoveApparelJobs.Clear();
+                activeWearJobsByApparelId.Clear();
 
                 RebuildLoadedLockPending();
             }

@@ -19,12 +19,46 @@ namespace WardrobeAttendant
                 Pawn target = __instance?.pawn;
                 WardrobeGameComponent component = WardrobeGameComponent.Get;
 
+                bool hasPendingLock = false;
+                bool isActiveWearJob = false;
+                string pendingSlotName = "null";
+                bool pendingLockApparel = false;
+
+                if (component != null)
+                {
+                    hasPendingLock = component.TryGetLockPending(newApparel, out var pendingLocal);
+                    isActiveWearJob = component.IsActiveWearJob(newApparel);
+
+                    if (hasPendingLock)
+                    {
+                        pendingSlotName = pendingLocal.slot?.slotName ?? "null";
+                        pendingLockApparel = pendingLocal.slot?.lockApparel ?? false;
+                    }
+                }
+
                 if (target == null ||
                     newApparel == null ||
                     component == null ||
-                    !component.TryGetLockPending(newApparel, out var pending))
+                    (!hasPendingLock && !isActiveWearJob))
                 {
                     return true;
+                }
+
+                if (WorkGiver_WardrobeAttendant.IsTargetUnavailableForService(target))
+                {
+                    component.ClearLockPending(newApparel);
+                    component.ClearActiveWearJob(newApparel);
+
+                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+                    {
+                        Log.Message(
+                            $"[Wardrobe] Cancelled wear for " +
+                            $"{target.LabelShortCap}: " +
+                            $"{newApparel.def.defName} because the target became unavailable " +
+                            $"for wardrobe service.");
+                    }
+
+                    return false;
                 }
 
                 bool isPolicyAllowed =
@@ -62,8 +96,8 @@ namespace WardrobeAttendant
                     {
                         Log.Message(
                             $"[Wardrobe] Wear Prefix: " +
-                            $"pending.slot={(pending.slot != null ? pending.slot.slotName : "null")}, " +
-                            $"lockApparel={(pending.slot?.lockApparel ?? false)}");
+                            $"pending.slot={pendingSlotName}, " +
+                            $"lockApparel={pendingLockApparel}");
                     }
 
                     // Do not use Pawn_ApparelTracker's vanilla locked-apparel state.
@@ -96,8 +130,8 @@ namespace WardrobeAttendant
         }
 
         public static void Postfix(
-    Pawn_ApparelTracker __instance,
-    Apparel newApparel)
+            Pawn_ApparelTracker __instance,
+            Apparel newApparel)
         {
             try
             {

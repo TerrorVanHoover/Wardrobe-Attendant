@@ -167,6 +167,7 @@ namespace WardrobeAttendant
                 job.targetB.Thing is Apparel apparelToWear)
             {
                 component.TryMarkLockPending(apparelToWear, job, jobSlot);
+                component.TryMarkActiveWearJob(apparelToWear, job);
 
                 MarkApparelDisplacedByEarlyReplacement(
                     target,
@@ -177,6 +178,7 @@ namespace WardrobeAttendant
                 job.targetB.Thing is Apparel selfWearApparel)
             {
                 component.TryMarkLockPending(selfWearApparel, job, jobSlot);
+                component.TryMarkActiveWearJob(selfWearApparel, job);
 
                 MarkApparelDisplacedByEarlyReplacement(
                     target,
@@ -496,6 +498,13 @@ namespace WardrobeAttendant
                 return null;
             }
 
+            if (worker == target && target.Downed)
+            {
+                LogDebug(
+                    $"{target.LabelShortCap} is downed and cannot service their own wardrobe.");
+                return null;
+            }
+
             if (IsAlreadyBeingDressed(worker, target) ||
                 IsReservedByOtherWorker(worker, target))
             {
@@ -668,13 +677,55 @@ namespace WardrobeAttendant
                    target?.Drafted == true;
         }
 
-        private static bool IsValidTarget(Pawn worker, Pawn target)
+        public static bool IsTargetUnavailableForService(Pawn target)
         {
             if (target == null ||
                 !target.Spawned ||
                 target.Dead ||
-                target.Downed ||
-                target.apparel == null)
+                target.Destroyed ||
+                target.apparel == null ||
+                target.InMentalState)
+            {
+                return true;
+            }
+
+            if (target.jobs?.curDriver?.asleep == true)
+            {
+                return true;
+            }
+
+            HediffDef torporDef = DefDatabase<HediffDef>.GetNamedSilentFail("Torpor");
+
+            if (torporDef != null &&
+                target.health?.hediffSet != null &&
+                target.health.hediffSet.HasHediff(torporDef))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsTargetDownedButServiceable(Pawn target)
+        {
+            if (target == null ||
+                !target.Downed ||
+                IsTargetUnavailableForService(target))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsValidTarget(Pawn worker, Pawn target)
+        {
+            if (IsTargetUnavailableForService(target))
+            {
+                return false;
+            }
+
+            if (target.Downed && !IsTargetDownedButServiceable(target))
             {
                 return false;
             }
@@ -930,7 +981,9 @@ namespace WardrobeAttendant
         {
             slot = null;
 
-            if (target == null || apparel == null)
+            if (target == null ||
+                apparel == null ||
+                target.Downed)
             {
                 return false;
             }
@@ -1008,6 +1061,11 @@ namespace WardrobeAttendant
                 target.Dead ||
                 target.apparel == null ||
                 apparel.Wearer != target)
+            {
+                return false;
+            }
+
+            if (IsTargetUnavailableForService(target))
             {
                 return false;
             }
@@ -1180,6 +1238,15 @@ namespace WardrobeAttendant
                     target,
                     apparel,
                     "basic availability or wearability");
+                return false;
+            }
+
+            if (IsTargetUnavailableForService(target))
+            {
+                LogWearValidationFailure(
+                    target,
+                    apparel,
+                    "target is unavailable for service");
                 return false;
             }
 
@@ -1593,6 +1660,15 @@ namespace WardrobeAttendant
                 target, slot, worker, mapApparel, wornApparel, policy,
                 protectedExactDefs, slots, slotIndex);
 
+            if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+            {
+                Log.Message(
+                    $"[Wardrobe] Exact item scan: " +
+                    $"target={target.LabelShortCap}, " +
+                    $"slot={slot.slotName}, " +
+                    $"candidate={(candidate != null ? candidate.def.defName : "null")}");
+            }
+
             return candidate != null
                 ? JobMaker.MakeJob(JobDefOf.ForceTargetWear, target, candidate)
                 : null;
@@ -1740,6 +1816,15 @@ namespace WardrobeAttendant
                 mapApparel,
                 AllApparelLayers,
                 policy);
+
+            if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+            {
+                Log.Message(
+                    $"[Wardrobe] Full outfit scan: " +
+                    $"target={target.LabelShortCap}, " +
+                    $"slot={slot.slotName}, " +
+                    $"candidates={candidates.Count}");
+            }
 
             if (candidates.Count == 0)
             {
@@ -2236,8 +2321,17 @@ namespace WardrobeAttendant
                 }
 
                 if (!worker.CanReserveAndReach(
-                        apparel, PathEndMode.ClosestTouch, Danger.Deadly))
+                    apparel, PathEndMode.ClosestTouch, Danger.Deadly))
                 {
+                    if (WardrobeModSettingsExtensions.DebugLoggingEnabled)
+                    {
+                        Log.Message(
+                            $"[Wardrobe] Apparel rejected: " +
+                            $"worker={worker.LabelShortCap}, " +
+                            $"apparel={apparel.def.defName}, " +
+                            $"reason=worker cannot reserve or reach apparel");
+                    }
+
                     continue;
                 }
 
