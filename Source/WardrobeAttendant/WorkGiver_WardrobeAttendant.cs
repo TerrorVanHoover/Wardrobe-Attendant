@@ -737,6 +737,11 @@ namespace WardrobeAttendant
                 return true;
             }
 
+            if (target.IsColonyMech)
+            {
+                return WardrobeTargetUtility.CanMechWearApparel(target);
+            }
+
             return target.RaceProps.Animal &&
                    target.Faction == Faction.OfPlayer;
         }

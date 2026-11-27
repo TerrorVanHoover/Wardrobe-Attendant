@@ -66,7 +66,7 @@
 	<WardrobeAttendant.Summary.CorpseApparelAllowed>Corpse-worn apparel allowed</WardrobeAttendant.Summary.CorpseApparelAllowed>
 	<WardrobeAttendant.Summary.OnlyCorpseApparel>Corpse-worn apparel only</WardrobeAttendant.Summary.OnlyCorpseApparel>
 
-	<WardrobeAttendant.Slot.AllowSelfService>Allow this colonist to service their own wardrobe</WardrobeAttendant.Slot.AllowSelfService>
+	<WardrobeAttendant.Slot.AllowSelfService>Allow this pawn to service their own wardrobe</WardrobeAttendant.Slot.AllowSelfService>
 	<WardrobeAttendant.Slot.AllowSelfServiceDesc>When disabled, this apparel slot will not be serviced by the pawn who owns it.</WardrobeAttendant.Slot.AllowSelfServiceDesc>
 
 	<WardrobeAttendant.Slot.AllowEarlyReplacement>Allow replacing current apparel before its durability threshold</WardrobeAttendant.Slot.AllowEarlyReplacement>

@@ -8,7 +8,7 @@
 		<li>1.7</li>
 	</supportedVersions>
 	<description>
-		Assign colonists to continuously maintain the required apparel of colonists, slaves, prisoners and colony animals.
+		Assign colonists and eligible colony mechanoids to continuously maintain the required apparel of colonists, slaves, prisoners, colony animals and colony mechanoids.
 
 		Features:
 		- Create multiple apparel rules per pawn.
@@ -17,7 +17,7 @@
 		- Reorder apparel rules directly in the Wardrobe window. Slot order determines the order in which rules are evaluated: rules higher in the list are serviced first. Exact item rules take priority over Full outfit rules when both can apply to the same apparel.
 		- Active wardrobe jobs respect slot reordering. If a higher-priority rule becomes applicable after a slot is moved, an active ForceTargetWear or self-wear job is revalidated and cancelled when its selected apparel is no longer the highest-priority candidate. Compatible higher-priority rules do not interrupt an active job, and jobs are reissued according to the new slot order. Pending lock-job references are updated so saves made during an active job restore the correct rule after loading.
 		- Filter apparel by quality range and durability threshold.
-		- Per-slot option to allow or forbid a colonist from servicing their own wardrobe.
+		- Per-slot option to allow or forbid a pawn from servicing their own wardrobe.
 		- Per-slot early replacement: a substantially better available item can replace current apparel before it reaches the durability threshold.
 		- Per-slot option to allow or forbid Wardrobe Attendant workers from removing locked apparel.
 		- Apparel is scored using quality, condition and actual armor ratings. Market value is not used.
@@ -66,8 +66,16 @@
 
 		Wardrobe maintenance is performed through a separate Wardrober work type. Hauling must be available to enable Wardrober for a pawn, but can be disabled afterward.
 		- Wardrober can be enabled or disabled separately from Hauling.
-		- The Wardrober checkbox is available only to colony colonists and colony slaves whose Hauling work is available.
+		- The Wardrober checkbox is available only to colony colonists, colony slaves and eligible colony mechanoids whose Hauling work is available.
+		- Colony mechanoids also require Manipulation to perform Wardrober work.
 		- Prisoners and animals cannot perform Wardrober work, but can still be configured as wardrobe targets.
+		- Colony mechanoids can be configured as wardrobe targets when they are wearing apparel. This excludes vanilla transport drones and other mechanoids without worn apparel.
+		- Optional compatibility with Man-at-arms: its humanoid mechanoids remain valid wardrobe targets even when not wearing apparel. The compatibility check uses cached reflection and safely falls back to the standard worn-apparel check if Man-at-arms is absent or changes its API.
+		- Optional compatibility with Mech Work Tab: Wardrober is shown as a work column for colony mechanoids, and its tooltip uses the standard work-type tooltip. The compatibility patch is applied only when Mech Work Tab is loaded.
+		- Wardrobe UI for eligible colony mechanoids uses the vanilla Gear tab, like animals. No fallback gizmo is added.
+		- Lock after equipping works for eligible colony mechanoids when outfit tracking is available and is a safe no-op otherwise.
+		- The mod does not patch MechanitorUtility.AnyPlayerMechCanDoWork; vanilla control groups and work type visibility are unaffected.
+		- A compatibility guard prevents thought queries for mechanoids without mood or thought context. This avoids NullReferenceException errors in UI mods such as NiceInventoryTab when opening the Gear tab on a mechanoid.
 		- Compatible with colony children, enslaved children, imprisoned children and young colony animals as wardrobe targets.
 		- Only one active Full outfit rule is allowed per pawn; enabling another Full outfit rule deactivates the previous one.
 		- Only one active Exact item rule for the same apparel def is allowed per pawn; enabling another identical Exact item rule deactivates the previous one.

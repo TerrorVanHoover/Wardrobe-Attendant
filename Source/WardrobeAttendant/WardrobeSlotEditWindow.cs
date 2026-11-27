@@ -100,7 +100,9 @@ namespace WardrobeAttendant
 
             bool canSelfService =
                 target != null &&
-                (target.IsColonist || target.IsSlaveOfColony);
+                (target.IsColonist ||
+                target.IsSlaveOfColony ||
+                target.IsColonyMech);
 
             if (canSelfService)
             {

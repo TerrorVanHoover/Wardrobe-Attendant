@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -25,25 +26,60 @@ namespace WardrobeAttendant
 
                 bool shouldDisableWardrober =
                     !IsAllowedWardroberWorker(__instance) ||
-                    __instance.WorkTagIsDisabled(WorkTags.Hauling);
+                    IsHaulingUnavailable(__instance);
 
-                if (!shouldDisableWardrober)
+                List<WorkTypeDef> disabledTypes =
+                    __result as List<WorkTypeDef>;
+
+                if (shouldDisableWardrober)
+                {
+                    if (disabledTypes == null)
+                    {
+                        disabledTypes = new List<WorkTypeDef>(__result);
+                    }
+
+                    if (!disabledTypes.Contains(
+                            WardrobeWorkTypeDefOf.WardrobeAttendant_Wardrober))
+                    {
+                        disabledTypes.Add(
+                            WardrobeWorkTypeDefOf.WardrobeAttendant_Wardrober);
+                    }
+
+                    __result = disabledTypes;
+                    return;
+                }
+
+                if (!__instance.IsColonyMech)
                 {
                     return;
                 }
 
-                List<WorkTypeDef> disabledTypes =
-                    __result as List<WorkTypeDef> ??
-                    new List<WorkTypeDef>(__result);
-
-                if (!disabledTypes.Contains(
+                if (__instance.health != null &&
+                    __instance.health.DisabledWorkTypes.Contains(
                         WardrobeWorkTypeDefOf.WardrobeAttendant_Wardrober))
                 {
-                    disabledTypes.Add(
-                        WardrobeWorkTypeDefOf.WardrobeAttendant_Wardrober);
+                    return;
                 }
 
-                __result = disabledTypes;
+                if (disabledTypes == null)
+                {
+                    disabledTypes = new List<WorkTypeDef>(__result);
+
+                    if (!disabledTypes.Remove(
+                            WardrobeWorkTypeDefOf.WardrobeAttendant_Wardrober))
+                    {
+                        return;
+                    }
+
+                    __result = disabledTypes;
+                    return;
+                }
+
+                if (disabledTypes.Remove(
+                        WardrobeWorkTypeDefOf.WardrobeAttendant_Wardrober))
+                {
+                    __result = disabledTypes;
+                }
             }
             catch (System.Exception ex)
             {
@@ -56,7 +92,34 @@ namespace WardrobeAttendant
         private static bool IsAllowedWardroberWorker(Pawn pawn)
         {
             return pawn != null &&
-                   (pawn.IsColonist || pawn.IsSlaveOfColony);
+                   (pawn.IsColonist ||
+                    pawn.IsSlaveOfColony ||
+                    pawn.IsColonyMech) &&
+                   pawn.health != null &&
+                   pawn.health.capacities.CapableOf(
+                       PawnCapacityDefOf.Manipulation);
+        }
+
+        private static bool IsHaulingUnavailable(Pawn pawn)
+        {
+            if (pawn.WorkTagIsDisabled(WorkTags.Hauling))
+            {
+                return true;
+            }
+
+            if (pawn.IsColonyMech)
+            {
+                List<WorkTypeDef> mechWorkTypes =
+                    pawn.RaceProps?.mechEnabledWorkTypes;
+
+                if (mechWorkTypes == null ||
+                    !mechWorkTypes.Contains(WorkTypeDefOf.Hauling))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
