@@ -120,12 +120,31 @@ namespace WardrobeAttendant
 
             bool lockApparel = slot.lockApparel;
 
-            listing.CheckboxLabeled(
+            bool isMechTarget =
+                target != null &&
+                target.IsColonyMech;
+            
+            bool isAnimalTarget =
+                target != null &&
+                target.RaceProps?.Animal == true;
+
+            bool lockUnsupported = isMechTarget
+                ? target.outfits?.forcedHandler == null
+                : isAnimalTarget;
+
+            string lockUnsupportedTooltip = isMechTarget
+                ? "WardrobeAttendant.Slot.MechLockUnsupported".Translate()
+                : "WardrobeAttendant.Slot.AnimalLockUnsupported".Translate();
+            
+            CheckboxLabeledWithWarning(
+                listing,
                 "WardrobeAttendant.Slot.LockApparel".Translate(),
                 ref lockApparel,
                 slot.lockApparel
                     ? "WardrobeAttendant.Slot.LockedDesc".Translate()
-                    : "WardrobeAttendant.Slot.UnlockedDesc".Translate());
+                    : "WardrobeAttendant.Slot.UnlockedDesc".Translate(),
+                lockUnsupported,
+                lockUnsupportedTooltip);
 
             slot.lockApparel = lockApparel;
 
@@ -135,10 +154,13 @@ namespace WardrobeAttendant
 
                 bool allowWorkerRemoveLocked = slot.allowWorkerRemoveLocked;
 
-                listing.CheckboxLabeled(
+                CheckboxLabeledWithWarning(
+                    listing,
                     "WardrobeAttendant.Slot.AllowWorkerRemoveLocked".Translate(),
                     ref allowWorkerRemoveLocked,
-                    "WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc".Translate());
+                    "WardrobeAttendant.Slot.AllowWorkerRemoveLockedDesc".Translate(),
+                    lockUnsupported,
+                    lockUnsupportedTooltip);
 
                 slot.allowWorkerRemoveLocked = allowWorkerRemoveLocked;
             }
@@ -471,6 +493,59 @@ namespace WardrobeAttendant
             listing.End();
 
             Widgets.EndScrollView();
+        }
+
+        private void CheckboxLabeledWithWarning(
+            Listing_Standard listing,
+            string label,
+            ref bool value,
+            string tooltip,
+            bool showWarning,
+            string warningTooltip)
+        {
+            if (!showWarning)
+            {
+                listing.CheckboxLabeled(label, ref value, tooltip);
+                return;
+            }
+
+            float iconSize = ExactApparelWarningIconSize;
+            float gap = ExactApparelWarningIconGap;
+
+            Rect rowRect = listing.GetRect(Text.LineHeight);
+
+            Rect iconRect = new Rect(
+                rowRect.x,
+                rowRect.y + (rowRect.height - iconSize) / 2f,
+                iconSize,
+                iconSize);
+
+            Widgets.DrawTextureFitted(
+                iconRect,
+                SlotWarningIcon,
+                1f);
+
+            TooltipHandler.TipRegion(
+                iconRect,
+                warningTooltip);
+
+            Rect checkboxRect = new Rect(
+                rowRect.x + iconSize + gap,
+                rowRect.y,
+                rowRect.width - iconSize - gap,
+                rowRect.height);
+
+            Widgets.CheckboxLabeled(
+                checkboxRect,
+                label,
+                ref value);
+
+            if (!string.IsNullOrEmpty(tooltip))
+            {
+                TooltipHandler.TipRegion(
+                    checkboxRect,
+                    tooltip);
+            }
         }
 
         private void ApplySavedPlacement()

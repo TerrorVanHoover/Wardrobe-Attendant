@@ -67,7 +67,7 @@
 	<WardrobeAttendant.Summary.OnlyCorpseApparel>Только одежда с трупов</WardrobeAttendant.Summary.OnlyCorpseApparel>
 
 	<WardrobeAttendant.Slot.AllowSelfService>Разрешить этой пешке обслуживать свой гардероб</WardrobeAttendant.Slot.AllowSelfService>
-	<WardrobeAttendant.Slot.AllowSelfServiceDesc>Если отключено, этот слот одежды не будет обслуживаться самим владельцем гардероба.</WardrobeAttendant.Slot.AllowSelfServiceDesc>
+	<WardrobeAttendant.Slot.AllowSelfServiceDesc>Для самостоятельного обслуживания своего гардероба требуется работа Гардеробщик. Если отключено, этот слот одежды не будет обслуживаться самим владельцем гардероба.</WardrobeAttendant.Slot.AllowSelfServiceDesc>
 
 	<WardrobeAttendant.Slot.AllowEarlyReplacement>Разрешить заменять текущую вещь до достижения порога прочности</WardrobeAttendant.Slot.AllowEarlyReplacement>
 	<WardrobeAttendant.Slot.AllowEarlyReplacementDesc>Если включено, более подходящая доступная вещь может заменить текущую до достижения порога прочности. Требуется преимущество по score минимум на 10.</WardrobeAttendant.Slot.AllowEarlyReplacementDesc>
@@ -91,6 +91,9 @@
 	<WardrobeAttendant.Slot.ExactDefUnwearable>Текущий слот считается невыполнимым и обслуживаться не будет: выбранная вещь не может быть надета этим колонистом.</WardrobeAttendant.Slot.ExactDefUnwearable>
 
 	<WardrobeAttendant.Slot.ServiceOrderInfo>Порядок обслуживания: сверху вниз. Правила с конкретной вещью имеют приоритет над правилами полного набора.</WardrobeAttendant.Slot.ServiceOrderInfo>
+
+	<WardrobeAttendant.Slot.MechLockUnsupported>Для механоидов блокировка не применяется: у них нет outfit/forcedHandler.</WardrobeAttendant.Slot.MechLockUnsupported>
+	<WardrobeAttendant.Slot.AnimalLockUnsupported>Для животных блокировка не применяется.</WardrobeAttendant.Slot.AnimalLockUnsupported>
 	
 
 </LanguageData>
